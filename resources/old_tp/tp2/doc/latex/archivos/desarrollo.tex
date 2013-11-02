@@ -1,0 +1,203 @@
+\section{Desarrollo}
+
+Pasaremos a explicar cada uno de los puntos importantes del trabajo. Para empezar debemos aclarar que tomaremos por asumido que al referirnos a la matriz, estamos hablando del sistema a resolver, asimismo tomaremos la dimensión como $n$ y mencionaremos indistintamente cada uno de ellos.
+
+\subsection{Planteo de la ecuación para resolver el PageRank}
+
+Recordemos que la ecuación que devuelve el ranking según el enunciado es:
+
+\begin{equation*}
+(\mI - p \; \mW \; \mD) \; \vx = \gamma \; \ve,
+\label{eq:pr2}
+\end{equation*}
+
+donde $\gamma$ funciona como un factor de escala, $\mI$ es la identidad, $p$ es la probabilidad de que el \emph{Random Walker} (el mismo que el del enunciado) salte a un link de la página en la que está, $\mW$ es la \emph{matriz de conectividad}, $\mD$ es una matriz diagonal de la forma
+
+\begin{equation*}
+d_{jj} = \left\lbrace
+\begin{array}{lcl}
+1/c_j & \qquad \text{si} \qquad & c_j \neq 0 \\
+0 & \qquad \text{si} \qquad & c_j = 0
+\end{array}
+\right. ,
+\end{equation*}
+
+donde $c_j$ es la cantidad de links salientes de la página $j$ y por último $\ve$ es un vector columna de unos de dimensión $n$. Por sugerencia del enunciado asignamos: $\gamma = 1$ y $p = 0,85$.
+
+\subsection{Resolución del sistema}
+
+Algo que es importante notar es que la matriz $\mW$ tiene la mayoría de sus posiciones en $0$, esto es debido a que en nuestro caso, $\mW$ representa los links que hay entre páginas, y es natural asumir que por cada página, los links salientes son mucho menores a la dimensión de la matriz. Por lo tanto al resolver el sistema, tenemos entre manos una matriz que podríamos considerar \emph{rala}, este fue un factor determinante a la hora de elegir los métodos de resolución.
+
+Vamos a mostrar dos tipos de soluciones, una usando un método directo y la otra iterativa. Cada una de estas soluciones, se adaptan mejor a distintos tipos de matrices, por lo cual en la sección de Pruebas y Resultados veremos en qué casos es conveniente aplicar cada uno.
+
+\subsubsection{Método Directo A = QR}
+
+En ésta sección $A = (\mI - p \; \mW \; \mD)$
+
+La razón principal para elegir $QR$ como método de resolución directa, es que que para triangular contamos con las Rotaciones de Givens. Este procedimiento nos permite preservar lo mas posible, la propiedad rala de la matriz, ya que para cada posición $a_{ij}$ que queramos eliminar de $A$, solo veremos afectadas las filas $i$ y $j$ respectivamente. Dada nuestra implementación de matrices y la dimensión de éstas, es importante que tengamos matrices con la mayor cantidad de ceros posibles, pues esto implica un ahorro en memoria que en cada paso de la triangulación será muy importante (ver Detalles de Implementación).
+
+La complejidad de éste método es cúbica, veamos:
+
+\begin{itemize}
+    \item Al tener una matriz de dimensión $n$, es decir de $n \times n$, tendremos que poner en $0$, $\frac{n(n - 1)}{2}$ posiciones
+    \item Hacer Givens, tiene un costo lineal $n$, pues multiplicar a izquierda por $G^{t}_i$ solo afecta a 2 filas de la matriz.
+
+Por lo tanto, asi que como vemos tenemos que aplicar Givens $\frac{n(n - 1)}{2}$ veces, lo que nos da un orden de $O(n^3)$.
+
+\end{itemize}
+
+%La razón principal para elegir $QR$ como método de triangulación directo, es que contamos con las Rotaciones de Givens, las cuales, por cada posición $a_{ij}$ de $A$ que deseemos eliminar, sólo modifica a la fila $i$ y $j$, esto implementativamente hablando es positivo, ya que nos permite conservar por mas iteraciones la naturaleza rala de la matriz y así ahorrar espacio en memoria.
+
+%Sin embargo, para asegurar convergencia de éste método, o bien la matriz es diagonal dominante o es definida positiva. Hacer éstos cálculos no son para nada baratas en términos de eficiencia, cuestión por la cual es que aplicaremos el método sin saber de su convergencia para la matriz dada. Esto constituye nuestro análisis de tipo empírico, pero creemos que es exhaustivo al fin (ver sección Pruebas y Resultados).
+
+\subsubsection{Método Iterativo Jacobi}
+
+Al tener una matriz con elementos no nulos en la diagonal, pudimos tomarnos la libertad de elegir entre los métodos de Jacobi y Gauss-Seidel, pero elegimos el de Jacobi por sobre el de Gauss-Seidel ya que implementativamente el segundo requiere no pisar los elementos de $x^{(k)}$ para el cálculo de $x^{(k + 1)}$, por supuesto, para la optimización de memoria esto es importante, por lo tanto nos inclinamos por Jacobi que carece de este problema.
+
+Como vimos en la Introducción Teórica, el método de Jacobi garantiza convergencia si la matriz es definida positiva o es diagonal dominante. Nosotros tomaremos como criterio el que sea diagonal dominante.
+
+Para comenzar con la iteración tomamos como $x^{(0)} = (1, 0, 0, \dots,0)$, además implementamos un criterio de parada, la cual es: Para la iteración $k$ de nuestro método, dado un $\epsilon \in \mathbb{R}$ al cual llamaremos \emph{residuo} y la norma de Frobenius $\parallel . \parallel_F$, si se cumple que $\parallel Ax^{(k)} - b \parallel_F \leq \epsilon$ entonces paramos y devolvemos $x^{(k)}$.
+
+\subsection{Detalles de Implementación}
+
+En principio para implementar la matriz, se pensó en hacer un vector de vectores, donde en cada cada vector del vector principal serían las filas de la matriz. Sin embargo, nos dimos cuenta que estábamos desperdiciando espacio en memoria, pues como bien el enunciado lo dice (y nosotros también recalcamos), la matriz $(\mI - p \; \mW \; \mD)$ es rala, por lo tanto podriamos ahorrar memoria por cada lugar nulo.
+
+A la hora de implementar una matriz rala, luego de investigar y analizar las
+posibilidades, decidimos que era mas práctico tener una estructura que se
+encargue de contruir progresivamente una matriz rala, y otra que represente
+a la matriz rala propiamente dicha, con una estructura interna que favorece las
+operaciones matriciales. Sin embargo, dada la complejidad de alterar
+esta estructura interna, diseñamos las matrices ralas para que sean inmutables.
+
+Por otro lado, agregamos la opción de ordenar los elementos no nulos de la
+matriz rala de dos formas: considerando que la fila de una posición tiene mas
+prioridad que la columna, o al revez. Los algoritmos que se utilizan para
+acceder a las estructuras internas de la matriz rala varían levemente
+dependiendo de su orden, así que para una mayor claridad, en esta sección
+consideramos que siempre están ordenadas por filas, es decir, si definimos una
+posición como $P = (fila, columna)$, dados dos elementos distintos de cero, cada
+uno con posición $P1 = (x1, x2)$ y $P2 = (y1, y2)$ entonces $P1 < P2$ si y sólo
+si $x1 < y1$ o bien si se da al mismo tiempo que $x1 = y1$ y $x2 < y2$.
+
+\subsubsection{Creador de Matrices Ralas}
+
+Esta estructura esta implementada en \textit{C++} sobre un \textit{map} de la
+\textit{STL}, usando las posiciones como claves y el valor de la matriz en esa
+posicion justamente como valor del map. Además, cuando se inserta una nueva
+entrada, queda ordenada internamente, ya sea dandole mas importancia a la fila
+o a la columna de la posición. De esta manera, cuando se desea crear la matriz
+rala, es fácil iterar los elementos no nulos con el orden mencionado
+anteriormente.
+
+Agregar o sacar elementos no nulos con el creador, según la documentación del
+\textit{map} de la \textit{STL}, tiene un orden logarítmico en la cantidad de
+elementos no nulos guardados. Crear la matriz tiene un orden lineal en función
+a la cantidad de elementos distintos de cero.
+
+\subsubsection{Estructura de la Matriz Rala}
+
+La idea básica de nuestra implementación es tener todos los elementos distintos
+de cero guardados de manera ``plana'' y algunos datos adicionales para indicar
+sus posiciones. Mas específicamente, los datos se organizan de la siguiente
+manera:
+
+\begin{itemize}
+
+  \item Un arreglo $Z$ con todos los elementos distintos de cero ordenados
+adecuadamente.
+
+  \item Un entero $z$ que representa la cantidad de elementos distintos de cero.
+
+  \item Un entero $n$ que representa la cantidad de filas de la matriz.
+
+  \item Un entero $m$ que representa la cantidad de columnas de la matriz.
+
+  \item Un arreglo $F$ de $z$ elementos que indica la fila de cada elemento
+distinto de cero, es decir, que para $1 \leq i \leq z$, el elemento $Z_i$
+pertenece a la fila $F_i$ de la matriz.
+
+  \item Un arreglo $C$ de $z$ elementos que indica la columna de cada elemento
+distinto de cero, es decir, que para $1 \leq i \leq z$, el elemento $Z_i$
+pertenece a la columna $C_i$ de la matriz.
+
+  \item Un arreglo $J$ de $n + 1$ elementos, donde para $1 \leq i \leq n$, el
+entero $J_i$ indica donde inicia la fila $i$ dentro de $Z$. De este modo, el
+primer elemento de la fila $i$ es $Z_{J_i}$ y el último es $Z_{J_{i + 1} - 1}$.
+El valor de $J_{n + 1}$ simplemente ayuda a que el invariante anterior se
+mantenga para la última fila. \textit{Todo lo dicho en este punto es análogo
+para las columnas si la matriz está ordenada por columnas.}
+
+\end{itemize}
+
+Entonces, por cada elemento en la matriz distinto de cero hay un elemento en el
+arreglo $Z$, otro en $F$ y otro en $C$, y por otro lado, hay un elemento en $J$
+por cada fila (o columna) en la matriz (mas uno). Luego, comparando con $n * m$
+que es la cantidad de memoria que utiliza una matriz normal:
+
+\[
+3 * z + (n + 1) <  n * m \Leftrightarrow
+3 * z <  n * m - n - 1  \Leftrightarrow
+z <  (n * (m - 1) - 1) / 3
+\]
+
+\noindent Podemos decir entonces que en cuestiones de memoria vale la pena
+utilizar esta matriz rala solo si la cantidad de elementos no nulos de la
+matriz cumple la desigualdad:
+
+\[
+z <  (n * (m - 1) - 1) / 3
+\]
+
+\subsubsection{Iterador de Matrices Ralas}
+
+Esta estructura permite recorrer facilmente una matriz dependiendo del
+orden de la misma. Por ejemplo, si esta está ordenada por filas, entonces
+primero recorre por filas y luego por columnas. Sin embargo, mas allá del
+sentido en el cual avanza, solo pasa por los elementos no nulos de la matriz.
+
+\subsubsection{Acceso aleatório en Matrices Ralas}
+
+Acceder a una posición $(i, j)$ de una matriz rala $M$ no es muy recomendable
+sin el uso del iterador, ya que primero debe ubicar la fila dentro del arreglo
+$F$ de la matriz $M$ usando búsqueda binaria, y luego hacer lo mismo para la
+columna en el arreglo $C$ de la matriz $M$. Es decir, que la complejidad de
+esta operación tiene un orden $O(log(n) + log(m))$. En una matriz normal esta
+operación es de orden constante.
+
+\subsubsection{Suma y Resta de Matrices Ralas}
+
+Para sumar o restar dos matrices ralas $A$ y $B$, ambas con dimensión $n * m$,
+se necesita recorrer todos los elementos distintos de cero de cada una y
+agregarlos al resultado, teniendo en cuenta de que cuando la posición de un
+elemento distinto de cero de una de las dos matrices coincide con la posición de
+un elemento distinto de cero de la otra matriz entonces hay que operar entre
+esos elementos. El peor caso se da cuando no coinciden ningunas de las
+posiciones no vacías de las matrices, y por lo tanto, el orden de estas
+operaciones es $O(A_z + B_z)$, siendo $A_z$ y $B_z$ la cantidad de elementos no
+nulos de cada matriz. Para una matriz normal hay que operar con cada uno de sus
+elementos y por lo tanto el orden es $O(n + m)$, siendo $n$ y $m$ las
+dimensiones las matrices.
+
+\subsubsection{Multiplicación de Matrices Ralas}
+
+Multiplicar dos matrices ralas $A$ y $B$ es un poco mas complicado. Primero se
+iteran las filas de $A$, y por cada una se iteran las columnas de $B$. Luego,
+se inicializa un acumulador y se van iterando ``a la par'' las columnas de $A$
+con las columnas de $B$, ajustando a cada paso los iteradores cuando no
+coinciden los indices. Si la columna de $A$ coincide con la fila de $B$ se
+realiza la multiplicación entre el elemento actual de $A$ y el de $B$ y se suma
+en el acumulador. Al finalizar el ciclo en el cual los dos iteradores avanzan a
+la par, se guarda el acumulador en el lugar que corresponde. En el peor de los
+casos se recorren todos los elementos no nulos de $A$ y de $B$ una vez por cada
+fila con al menos un elemento no nulo de $A$, y esto empeora cuando hay al menos
+un elemento distinto de cero en cada una de las filas de $A$. Es decir, la
+complejidad tiene un orden $O(n * (A_z + B_z))$. Si $A$ y $B$ son matrices
+normales, con dimensiones $n * k$ y $k * m$ respectivamente, la complejidad
+sería $O(n * k * m)$.
+
+\subsubsection{Otras operaciones con Matrices Ralas}
+
+Para trasponer una matriz rala de $n * m$ o para multiplicarla por un escalar
+solo se requiere recorrer cada uno de sus elementos distintos de cero una vez, y
+por lo tanto, estas operaciones tienen $O(z)$. Para una matriz normal hay que
+operar con cada uno de sus elementos y por lo tanto el orden es $O(n + m)$.

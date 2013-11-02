@@ -1,0 +1,145 @@
+\section{Enunciado}
+
+\section*{Introducción}
+
+El motor del buscador de Google utiliza el denominado ranking de Page\footnote{Por Larry Page, uno de los fundadores de Google, otrora joven cientfico actualmente devenido multimillonario.} como uno de los criterios para ponderar la importancia de los resultados de cada bsqueda. Calcular este ranking requiere simplemente resolver un sistema de ecuaciones lineales\ldots{} donde la cantidad de ecuaciones e incgnitas del sistema es igual al nmero de pginas consideradas. Simplemente?
+
+Para un determinado conjunto de $n$ pginas web definamos la \emph{matriz de conectividad} \mW{} poniendo $w_{ij} = 1$ si la pgina $j$ tiene un link a la pgina $i$ y $w_{ij} = 0$ si no. Adems $w_{ii} = 0$ pues ignoramos los ``autolinks''. De esta forma, la matriz \mW{} puede resultar extremadamente rala y muy grande de acuerdo al tamao del conjunto. Por ejemplo, cada pgina $j$ tiene $c_j = \sum_i w_{ij}$ links (salientes), que tpicamente es un nmero mucho menor que $n$.
+
+Se busca que el ranking sea mayor en las pginas ``importantes''. Heursticamente, una pgina es importante cuando recibe muchos ``votos'' de otras pginas, es decir, links. Pero no todos los links pesan igual: los links de pginas ms importantes valen ms. Pocos links de pginas importantes pueden valer ms que muchos links de pginas poco importantes. Y los links de pginas con muchos links valen poco, por ser ``poco especficos''. 
+
+Un enfoque alternativo es considerar al ``navegante aleatorio''. El navegante aleatorio empieza en una pgina cualquiera del conjunto, y luego en cada pgina $j$ que visita elige con probabilidad $p$ si va a seguir uno de sus links, o (con probabilidad $1-p$) si va a pasar a una pgina cualquiera del conjunto. Usualmente $p=0.85$. Una vez tomada esa decisin, si decidi seguir un link elige uno al azar (probabilidad $1/c_j$), mientras que si decidi pasar a una pgina cualquiera entonces elige una al azar (probabilidad $1/n$). Cuando la pgina $j$ no tiene links salientes ($c_j = 0$) elige al azar una pgina cualquiera del conjunto. Heursticamente, luego de muchos pasos el navegante aleatorio estar en pginas importantes con mayor probabilidad.
+
+Formalmente, la probabilidad de pasar de la pgina $j$ a la pgina $i$ es
+\begin{equation*}
+a_{ij} = \left\lbrace 
+\begin{array}{lcl}
+(1-p)/n + (p \; w_{ij})/c_j & \qquad \text{si} \qquad & c_j \neq 0 \\
+1/n & \qquad \text{si} \qquad & c_j = 0 
+\end{array}
+\right. ,
+\end{equation*}
+y sea \mA{} a la matriz de elementos $a_{ij}$. Entonces el \textbf{ranking de Page} es la solucin del sistema
+\begin{equation}
+\mA \; \vx = \vx
+\label{eq:Ax}
+\end{equation}
+que cumple $x_i \geq 0$ y $\sum_i x_i =1$. Si pensamos que $x_j$ es la probabilidad de encontrar al navegante aleatorio en la pgina $j$, tenemos que $(\mA \vx)_i$ es la probabilidad de encontrarlo en la pgina $i$ luego de un paso. Y el ranking de Page es aquella distribucin de probabilidad que resulta ``estable''.
+
+
+La matriz \mA{} puede reescribirse como
+\begin{equation*}
+\mA = p \; \mW \; \mD + \ve \; \vz^T,
+\end{equation*}
+donde \mD{} es una matriz diagonal de la forma
+\begin{equation*}
+d_{jj} = \left\lbrace 
+\begin{array}{lcl}
+1/c_j & \qquad \text{si} \qquad & c_j \neq 0 \\
+0 & \qquad \text{si} \qquad & c_j = 0 
+\end{array}
+\right. ,
+\end{equation*}
+\ve{} es un vector columna de unos de dimensin $n$ y \vz{} es un vector columna cuyos componentes son
+\begin{equation*}
+z_{j} = \left\lbrace 
+\begin{array}{lcl}
+(1-p)/n & \qquad \text{si} \qquad & c_j \neq 0 \\
+1/n & \qquad \text{si} \qquad & c_j = 0 
+\end{array}
+\right. .
+\end{equation*}
+
+As, la ecuacin \eqref{eq:Ax} puede reescribirse como
+\begin{equation}
+(\mI - p \; \mW \; \mD) \; \vx = \gamma \; \ve,
+\label{eq:pr2}
+\end{equation}
+donde $\gamma = \vz^T \; \vx$ funciona como un factor de escala. 
+
+De esta manera, un procedimiento para calcular el ranking de Page consiste en:
+\begin{enumerate}
+	\item Suponer $\gamma = 1$.
+	\item Resolver la ecuacin \eqref{eq:pr2}.
+	\item Normalizar el vector \vx{} de manera que $\sum_i x_i =1$.
+\end{enumerate}
+
+%\section{Enunciado}
+
+%El objetivo de este trabajo es implementar el clculo del ranking de Page, segn el procedimiento descripto anteriormente, mediante por lo menos
+%\begin{itemize}
+%	\item un mtodo directo y
+%	\item un mtodo iterativo
+%\end{itemize}   
+%que resulten apropiados. 
+
+%Para ello, previamente debern estudiar las caractersticas de la matriz involucrada. 
+%Cmo se garantiza aplicabilidad de cada mtodo? 
+%O sea, en el caso directo, la inversibilidad de $(\mI - p \; \mW \; \mD)$ (est bien condicionada?). Y en el caso iterativo, la convergencia del mtodo.
+
+%Cmo es el desempeo de los diferentes mtodos? Considerar error numrico, costo computacional en tiempo, cantidad de operaciones, memoria y cantidad de iteraciones (cuando corresponda).
+
+%Cmo es el ranking obtenido en cada caso? Es consistente con lo esperado?
+
+%El programa deber leer los archivos con los datos del conjunto de pginas y calcular el ranking. 
+
+%Los mtodos debern utilizarse para calcular el ranking de pginas de varios conjuntos provistos por la ctedra y otros propuestos por los grupos como casos de prueba.
+
+\section*{Enunciado}
+
+El objetivo de este trabajo es programar el clculo del ranking de Page segn el procedimiento descripto anteriormente.
+Para la resolucin del sistema de ecuaciones resultante debern implementar por lo menos
+\begin{itemize}
+  \setlength{\itemsep}{0pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+    \item[$\circ$] un mtodo directo y
+    \item[$\circ$] un mtodo iterativo,
+\end{itemize}  
+que resulten apropiados.
+
+Previamente debern estudiar las caractersticas de la matriz involucrada. Cmo se garantiza la aplicabilidad de cada mtodo?
+En el caso directo, la inversibilidad de $(\mI - p \; \mW \; \mD)$. Est bien condicionada? 
+Y en el caso iterativo, la convergencia del mtodo.
+
+Debern proponer 3 casos de prueba (conjuntos de pginas y sus links) de acuerdo a criterios establecidos por el grupo, para probar las implementaciones.
+
+Los programas debern leer los archivos con los datos de los conjuntos de pginas (segn el formato que se describe ms abajo) y calcular el ranking.
+Las diferentes implementaciones debern utilizarse para calcular el ranking de pginas de varios conjuntos disponibles en la pgina de la materia propuestos por la ctedra y por los dems grupos. Podrn, adems, analizarse otros conjuntos elegidos por el grupo.
+
+En base a los ensayos realizados:
+\begin{itemize}
+\item[$\circ$] Interpretar los resultados. Cmo es el ranking obtenido en cada caso de acuerdo a las estructuras de los conjuntos? Qu conclusiones pueden sacar de la interpretacin de los resultados?
+\item[$\circ$] Respecto del ranking de Page. Funciona cmo era esperado? Hubo sorpresas? Qu pue-den concluir sobre su significado?
+\item[$\circ$] Respecto de los 2  ms mtodos implementados para la resolucin de los sistemas de ecuaciones lineales Cmo es el desempeo de cada uno? Considerar error numrico, costo computacional en tiempo, cantidad de operaciones, memoria y cantidad de iteraciones (cuando corresponda).
+\end{itemize}
+
+
+\subsection*{Datos de entrada}
+Cada conjunto de pginas ser descripto por 2 archivos de texto plano, a saber:
+  \setlength{\itemsep}{1pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+\begin{description}
+ \item[archivo de pginas:] conteniendo en la primera lnea la cantidad de pginas, y luego para cada pgina una lnea con: el nmero y la \emph{url} de la misma, separados por espacios; y
+\item[archivo de links:] conteniendo en la primera lnea la cantidad total de links, y luego para cada link una lnea con: el nmero de la pgina de origen y el nmero de la pgina de destino (en ese orden), separados por espacios.
+\end{description}
+
+
+
+
+\vskip 15pt
+\hrule
+\vskip 11pt
+
+Entregas parciales en papel, no ms de una carilla de texto:
+\begin{description}
+ \item[1 de octubre:] ideas y soluciones propuestas, plan de implementacin, casos de prueba
+ \item[8 de octubre:] implementacin y plan de experimentacin.
+\end{description}
+
+\vskip 15pt
+\hrule
+\vskip 11pt
+
+\textbf{Fecha de entrega final: 22 de octubre de 2010}

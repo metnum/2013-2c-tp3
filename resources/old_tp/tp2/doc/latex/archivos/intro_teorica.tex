@@ -1,0 +1,87 @@
+\section{Introducción Teórica}
+
+\subsection{PageRank}
+
+El Page Rank (Ranking de Page) es un algoritmo de análisis de links (vinculos),
+fue nombrado asi por Larry Page. Es usado por el motor de búsqueda web Google,
+el cual asigna un peso numérico a cada elemento de un conjunto de datos
+relacionados entre sí. En este caso el conjunto es la web entera. El objetivo es
+medir la importancia relativa de cada elemento dentro del conjunto. El algoritmo
+puede ser aplicado a cualquier colección de entidades con referencias y
+citaciones recíprocas.
+
+Podemos considerar la asignación de los pesos como una suma de votos: si una
+página $P$ es referenciada por otras páginas, esos son votos positivos, y si $P$
+referencia a otras páginas, esos son votos negativos, pero además estos votos,
+no valen todos lo mismo (he aquí el gran truco) a mayor PageRank tenga $P$, mas
+pesado va a ser su voto. De esta manera puede ser posible que una página $B$ sea
+referenciada por muchas páginas con peso bajo y estar en posición menor que otra
+$C$ que es referenciada sólo por $A$ que tiene mucho peso.
+
+\subsection{Rotaciones de Givens}
+
+Una rotación de givens es el proceso por el cual se multiplica una matriz $A$ a izquierda por una matriz $G$ para anular el elemento $A_{i, j}$ de $A$.
+La matriz G tiene la siguiente forma:
+
+\begin{displaymath}
+G(i, j) =
+\begin{bmatrix}
+1	& \cdots &    0   & \cdots &    0   & \cdots &    0   \\
+\vdots	& \ddots & \vdots &        & \vdots &        & \vdots \\
+0	& \cdots &    c   & \cdots &    s   & \cdots &    0   \\
+\vdots	&        & \vdots & \ddots & \vdots &        & \vdots \\
+0	& \cdots &   -s   & \cdots &    c   & \cdots &    0   \\
+\vdots	&        & \vdots &        & \vdots & \ddots & \vdots \\
+0	& \cdots &    0   & \cdots &    0   & \cdots &    1
+\end{bmatrix}
+\end{displaymath}
+
+Donde $g_{i, j} = -s$, $g_{i, i} = c$, $g_{j, j} = c$ y $g_{j, i} = s$.
+
+Además $c = A_{i, i} / r$, $s = A_{i, j} / r$ y $r = \sqrt{(A_{i, i})^2 + (A_{i, j})^2}$.
+
+\subsection{Descomposición QR}
+
+La descomposición $QR$ de una matriz, es aquella que dada una matriz $A$ la transforma al producto de dos matrices $Q$ y $R$, donde $Q$ es ortogonal y $R$ es triangular superior obteniendo la siguiente igualdad $A = QR$. Una de las formas de lograr esta descomposición es utilizar las Matrices de Rotación de Givens aplicadas a $A$ y $Q$ se obtiene multiplicando el conjunto de matrices de rotación de Givens usadas para triangular a $A$.
+
+\newpage
+
+El algoritmo de la descomposición tiene la siguiente forma:
+
+\begin{algorithm}{QR}{\param{}{A}{\mathbb{R}^{n \times n}}} {\param{}{[Q,R]}{}}
+	[Q,R] \leftarrow [I,A]\\
+	\begin{FOR}{ i = 1,2, \ldots , n-1}
+		$Sea $G_i$ matriz de Givens para eliminar el elemento $A_{i,i-1}\\
+		Q \leftarrow Q * G_i^t\\
+		R \leftarrow G_i * A
+	\end{FOR}\\
+	$devolver $[Q,R]
+\end{algorithm}
+
+\subsection{Método de Jacobi}
+
+El método de Jacobi es un proceso iterativo con el cual se resuelve el sistema lineal $Ax =  b$. Comienza con una aproximación inicial $x^{(0)}$ a la solucion $x$ y genera una sucesión de vectores $x^{(k)}$ que convergen a $x$. Tiene como precondición que los elementos de la diagonal deben ser distintos de $0$.
+
+Para iniciar el proceso se descompone la matriz $A$, de la siguente forma: $A = D - L - U$, donde $D$ es la diagonal de $A$, y $L$ y $U$ son la parte triangular inferior y superior respectivamente. Luego operamos de la siguiente forma:
+
+\begin{displaymath}
+Ax = b;
+\end{displaymath}
+\begin{displaymath}
+(D - L - U)x = b;
+\end{displaymath}
+\begin{displaymath}
+Dx = (L + U)x + b;
+\end{displaymath}
+\begin{displaymath}
+x = D^{-1}(L + U)x + D^{-1}b
+\end{displaymath}
+
+Ahora reemplazamos la $x$ del miembro izquierdo por nuestro $x^{(0)}$ y el $x$ del miembro derecho por $x^{(k)}$, el cual en cada iteración irá aproximando al valor exacto de $x$. La fórmula quedaría así:
+
+\begin{displaymath}
+x^{(k)} = D^{-1}(L + U)x^{(0)} + D^{-1}b
+\end{displaymath}
+
+La convergencia del método esta asegurada cuando la matriz $A$ es o bien es diagonal dominante o definida positiva.
+

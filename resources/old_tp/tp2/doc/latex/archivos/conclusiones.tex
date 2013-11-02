@@ -1,0 +1,17 @@
+\section{Conclusiones}
+
+\subsection{Matriz Rala}
+
+Dado los resultados obtenidos en ambos algoritmos, nuestra implementación de la matriz rala nos resulto mal encaminada, la decisión de hacerla estática nos jugó en contra al momento de hacer la factorización QR con rotaciones de givens, ya que la matriz a factorizar se tiene que cambiar por cada 0 que se pone debajo de la diagonal, lo cual implica volver a crear la matriz por cada paso demorando el cálculo del mismo. 
+
+De todas formas, nuestra algoritmo iterativo con respecto a la matriz rala, aumenta la capacidad de procesamiento en cuanto al tamaño del caso, pero perdiendo precisión en los cálculos.
+
+\subsection{Método Iterativo}
+
+El método iterativo se presenta como una alternativa a resolver los casos que el método directo no puede abordar gracias al tamaño del mismo, solamente tenemos que tener en cuenta que si queremos una mayor precisión tenemos que sacrificar tiempo, por lo tanto, si el tiempo no es problema, podemos hacer mas iteraciones obteniendo un mejor resultado. Como la velocidad de convergencia es relativamente rapida al principio, se pueden obtener buenos resultados con pocas iteraciones, logrando una un resultado aceptable relativamente rapido.
+
+\subsection{Método Directo}
+
+El método directo se vio directamente afectado por nuestra implementación de la matriz rala, como bien dijimos antes, nuestra implementación nos obligaba a reconstruir la matriz a factorizar por cada paso de la factorización QR. De todas formas en los casos en que pudimos correr el método, obtuvimos los resultados esperados y el algoritmo funciona correctamente. 
+
+Este método es el ideal para casos chicos de prueba, o una vez mejorada en un futuro la matriz rala, poder abarcar casos mas grandes.

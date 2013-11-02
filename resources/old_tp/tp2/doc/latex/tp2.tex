@@ -1,0 +1,86 @@
+\documentclass[12pt, a4paper, spanish]{article}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[a4paper=true]{hyperref}
+
+\usepackage[top=4cm,bottom=2cm,left=2cm,right=2cm]{geometry}
+
+
+
+%\usepackage[amsfonts]
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{packages/caratula}
+\usepackage{packages/algo2symb}
+\usepackage{packages/newalgo}
+\usepackage{packages/itef}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{makeidx}
+\usepackage{listings}
+\usepackage{color}
+
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\pagestyle{fancy}
+
+%matrices
+\newcommand{\mW}{\ensuremath{{\bf W}}}
+\newcommand{\mA}{\ensuremath{{\bf A}}}
+\newcommand{\mD}{\ensuremath{{\bf D}}}
+\newcommand{\mI}{\ensuremath{{\bf I}}}
+\newcommand{\vx}{\ensuremath{{\bf x}}}
+\newcommand{\ve}{\ensuremath{{\bf e}}}
+\newcommand{\vz}{\ensuremath{{\bf z}}}
+
+\newcommand{\norma}[1]{\left|\left|#1\right|\right|}
+\newcommand{\tc}{\hbox{\bf tc}}
+\newcommand{\real}{\ensuremath{\mathbb{R}}}
+\newcommand{\nat}{\ensuremath{\mathbb{N}}}
+
+\parskip=1ex
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.02 cm}
+\renewcommand{\footrulewidth}{0 cm}
+\fancyhead[L]{Métodos Numéricos - Ranking de Page (¿y Plant?)}
+\fancyhead[R]{Camino, Escalante, Giudici}
+\fancyfoot[C]{\thepage}
+\def\septad{\rule{16 cm}{.2 mm}}
+
+\begin{document}
+%
+    \materia{Métodos Numéricos}
+%
+    \titulo{Trabajo Práctico 2: Ranking de Page (¿y Plant?)}
+%
+    \integrante{Ramiro Daniel Camino}{264/06}{ramirocamino@gmail.com}
+%
+    \integrante{José Luis Escalante Catacora}{822/06}{joe.escalante@gmail.com}
+%
+    \integrante{Juan Carlos Giudici}{827/06}{elchudi@gmail.com}
+%
+    \maketitle
+    \tableofcontents
+    \newpage
+
+    \input{archivos/abstract.tex}
+    \newpage
+    \input{archivos/intro_teorica.tex}
+    \newpage
+    \input{archivos/desarrollo.tex}
+    \newpage
+    \input{archivos/resultados.tex}
+    \newpage
+    \input{archivos/discusion.tex}
+    \newpage
+    \input{archivos/conclusiones.tex}
+    \newpage
+
+    \appendix
+    \input{archivos/enunciado.tex}
+    \newpage
+    \input{archivos/referencias.tex}
+
+\end{document}
+

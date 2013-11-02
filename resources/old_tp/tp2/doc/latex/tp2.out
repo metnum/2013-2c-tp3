@@ -1,0 +1,30 @@
+\BOOKMARK [1][-]{section.1}{Resumen}{}
+\BOOKMARK [2][-]{subsection.1.1}{Palabras Clave}{section.1}
+\BOOKMARK [1][-]{section.2}{Introducci\363n Te\363rica}{}
+\BOOKMARK [2][-]{subsection.2.1}{PageRank}{section.2}
+\BOOKMARK [2][-]{subsection.2.2}{Rotaciones de Givens}{section.2}
+\BOOKMARK [2][-]{subsection.2.3}{Descomposici\363n QR}{section.2}
+\BOOKMARK [2][-]{subsection.2.4}{M\351todo de Jacobi}{section.2}
+\BOOKMARK [1][-]{section.3}{Desarrollo}{}
+\BOOKMARK [2][-]{subsection.3.1}{Planteo de la ecuaci\363n para resolver el PageRank}{section.3}
+\BOOKMARK [2][-]{subsection.3.2}{Resoluci\363n del sistema}{section.3}
+\BOOKMARK [3][-]{subsubsection.3.2.1}{M\351todo Directo A = QR}{subsection.3.2}
+\BOOKMARK [3][-]{subsubsection.3.2.2}{M\351todo Iterativo Jacobi}{subsection.3.2}
+\BOOKMARK [2][-]{subsection.3.3}{Detalles de Implementaci\363n}{section.3}
+\BOOKMARK [3][-]{subsubsection.3.3.1}{Creador de Matrices Ralas}{subsection.3.3}
+\BOOKMARK [3][-]{subsubsection.3.3.2}{Estructura de la Matriz Rala}{subsection.3.3}
+\BOOKMARK [3][-]{subsubsection.3.3.3}{Iterador de Matrices Ralas}{subsection.3.3}
+\BOOKMARK [3][-]{subsubsection.3.3.4}{Acceso aleat\363rio en Matrices Ralas}{subsection.3.3}
+\BOOKMARK [3][-]{subsubsection.3.3.5}{Suma y Resta de Matrices Ralas}{subsection.3.3}
+\BOOKMARK [3][-]{subsubsection.3.3.6}{Multiplicaci\363n de Matrices Ralas}{subsection.3.3}
+\BOOKMARK [3][-]{subsubsection.3.3.7}{Otras operaciones con Matrices Ralas}{subsection.3.3}
+\BOOKMARK [1][-]{section.4}{Pruebas y Resultados}{}
+\BOOKMARK [2][-]{subsection.4.1}{Testeando con Casos Peque\361os}{section.4}
+\BOOKMARK [2][-]{subsection.4.2}{Iteraciones vs. Residuo}{section.4}
+\BOOKMARK [2][-]{subsection.4.3}{Testeando casos grandes}{section.4}
+\BOOKMARK [1][-]{section.5}{Discusi\363n}{}
+\BOOKMARK [1][-]{section.6}{Conclusiones}{}
+\BOOKMARK [2][-]{subsection.6.1}{Matriz Rala}{section.6}
+\BOOKMARK [2][-]{subsection.6.2}{M\351todo Iterativo}{section.6}
+\BOOKMARK [2][-]{subsection.6.3}{M\351todo Directo}{section.6}
+\BOOKMARK [1][-]{appendix.A}{Enunciado}{}
