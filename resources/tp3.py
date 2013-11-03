@@ -15,7 +15,7 @@ def load_data(raw_data):
     graph = matrix(data=([[0.0] * pages] * pages))
 
     for link in raw_data[0: links + 1]:
-        src, dest = [int(s) for s in link.split(' ')]
+        src, dest = [int(s) for s in link.split()]
         graph[src - 1, dest - 1] = 1
 
     return graph
@@ -27,7 +27,9 @@ def has_no_out(web):
 
 def v(web):
     n = web.shape[0]
-    return matrix([[1.0/ n]] * n)
+    v = matrix([[1.0/ n]] * n)
+    print v
+    return v
 
 
 def build_uniform(web):
