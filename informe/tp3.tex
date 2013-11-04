@@ -1,0 +1,43 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc} 
+% para poder usar tildes en archivos UTF-8 
+\usepackage[spanish]{babel} 
+% para que comandos como \today den el resultado en castellano 
+\usepackage{a4wide} 
+% márgenes un poco más anchos que lo usual 
+\usepackage[conEntregas]{caratula}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm2e}
+\usepackage{lastpage}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhead[L]{Métodos Numéricos - PageRank}
+\fancyhead[R]{Escalante, Osinski, Raskovsky}
+\fancyfoot[C]{\thepage}
+
+\begin{document}
+
+\titulo{Trabájo Práctico 3} \subtitulo{PageRank}
+
+\fecha{\today}
+
+\materia{Métodos Numéricos}
+% \grupo{Grupo Los Amantes de tu Hermana}
+
+\integrante{Escalante, José}{822/06}{joe.escalante@gmail.com}
+\integrante{Osinski, Andrés}{405/07}{andres.osinski@gmail.com}
+\integrante{Raskovsky, Iván Alejandro}{57/07}{iraskovsky@dc.uba.ar}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\input{demo1.tex}
+
+\appendix
+\end{document}
