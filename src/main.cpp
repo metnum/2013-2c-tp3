@@ -62,6 +62,8 @@ int main(int argc, char ** argv)
     MatrizRala<float>::Creador creador_W(orden_por_filas, dimensiones, dimensiones, cero);
 
     // Se llena la matriz
+    char* valor;
+    int i, j;
     for(unsigned link = 0; link < links; link++)
     {
         getline(archivo_entrada, linea);
@@ -88,12 +90,13 @@ int main(int argc, char ** argv)
     // Construi la Matriz W
     const MatrizRala<float>* W = creador_W.Crear();
 
-    const MatrizRala<T>* W_por_filas = W->OrdenadaPorFilas();
-    typename MatrizRala<T>*::Iterador iterador(W_por_filas);
+    const MatrizRala<float>* W_por_filas = W->OrdenadaPorFilas();
+    typename MatrizRala<float>*::Iterador iterador(W_por_filas);
 
-    // Contruimos P
+    // Contruimos P'
+    // En un paso intermedio obtendremos P
     // primero obtengo los grados iterando W
-    vector<T> grados(dimensiones);
+    vector<float> grados(dimensiones);
     int index = 0;
     for (iterador.IniciarFilas(); iterador.QuedanFilas(); iterador.SiguienteFila())
     {
@@ -105,21 +108,26 @@ int main(int argc, char ** argv)
     }
     delete W_por_filas;
 
-    // Ahora armamos P iterando nuevamente W
-    const MatrizRala<T>* W_por_filas = W->OrdenadaPorFilas();
-    typename MatrizRala<T>*::Iterador iterador(W_por_filas);
+    // Ahora armamos P' iterando nuevamente W
+    typename MatrizRala<float>*::Iterador iterador2(W_por_filas);
 
-    MatrizRala<float>::Creador creador_P(orden_por_filas, dimensiones, dimensiones, cero);
-    for (iterador.IniciarFilas(); iterador.QuedanFilas(); iterador.SiguienteFila())
+    MatrizRala<float>::Creador creador_P1(orden_por_filas, dimensiones, dimensiones, cero);
+    for (iterador2.IniciarFilas(); iterador2.QuedanFilas(); iterador2.SiguienteFila())
     {
-        for (iterador.IniciarColumnas(); iterador.QuedanColumnas(); iterador.SiguienteColumna())
+        for (iterador2.IniciarColumnas(); iterador2.QuedanColumnas(); iterador2.SiguienteColumna())
         {
-            creador_P.Agregar(iterador.ColunmaActual(), iterador.FilaActual(), uno / grados[iterador.ColunmaActual()])
+            creador_P1.Agregar(iterador2.ColunmaActual(), iterador2.FilaActual(), uno / grados[iterador2.ColunmaActual()])
         }
     }
     delete W_por_filas;
 
-    const MatrizRala<float>* P = creador_P.Crear();
+    // Tenemos ahora que P1 == P
+    // para que P1 = P + D, pondremos en
+    // la diagonal 1/n
+    for (int i = 0; i < dimensiones; ++i)
+        creador_P1.Agregar(i, i, uno / dimensiones);
+
+    const MatrizRala<float>* P1 = creador_P1.Crear();
 
     return 0;
 }
