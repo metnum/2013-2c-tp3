@@ -5,6 +5,38 @@ from numpy import matrix, any
 from numpy.linalg import norm, qr, solve
 import sys
 
+# Operaciones
+# load_file(string filename)
+# build_matrix(const double[][]& raw_data)
+
+# sparse_matrix(int m, int n, bool by_row=true)
+
+# Operaciones matriciales
+
+# void set_empty_value(double c)
+# void sum(double c)
+# vouid sum(sparse_matrix& m)
+# void sub(sparse_matrix& m)
+# void mult(double c)
+# void  mult(sparse_matrix& m2) // modifica m in-place
+# double norm(int norm) // 1 o 2
+# double put(int i, int j, double val)
+# double get(int i, int j, double if_empty)
+# sparse_matrix& get_column(int i);
+# count_nonzero_row
+
+# row_divide(int i, double val)
+# row_sum(int i, double c)
+# row_sum(int i, sparse_matrix& row)
+# row_sub(int i, sparse_matrix& row)
+# col_sum(int j, double c)
+# col_sum(int j, sparse_matrix& col)
+# col_sub(int j, sparse_matrix& col)
+
+# ----------------------------
+
+# Otras funciones matriz
+# sparse_matrix& identity(int m, int n)
 
 REMAIN_FACTOR = 0.95
 TELEPORTATION_FACTOR = 1 - REMAIN_FACTOR
