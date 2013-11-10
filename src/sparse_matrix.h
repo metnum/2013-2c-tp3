@@ -2,10 +2,20 @@
 #define	_MATRIZRALA_H
 
 #include <map>
+#include <cmath>
 #include <vector>
 #include <iostream>
 
 using namespace std;
+
+double norm(vector<double> vec, int n) {
+    double accum = 0;
+    if (n == 1) {
+        for(auto v&: vec) {
+            accum += abs(v);
+        }
+    }
+}
 
 class sparse_matrix {
     private:
@@ -37,9 +47,29 @@ class sparse_matrix {
             }
         }
 
-        void sub(sparse_matrix& m);
-        void mult(double c);
-        void mult(vector<double> vec) {
+        void sub_inplace(sparse_matrix& m) {
+        }
+
+        void mult_inplace(double c) {
+            for(auto& row_iter: this->data.begin()) {
+                for(auto col_iter: row_iter.begin()) {
+                    col_iter->second = col_iter->second * c;
+                }
+            }
+        }
+
+        sparse_matrix& mult(double c) {
+            auto& ret = sparse_matrix(this->m, this->n, this->default_value *= c, this->by_row);
+            for(auto& row_iter: this->data.begin()) {
+                for(auto col_iter: row_iter.begin()) {
+                    ret->put(row_iter->first, col_iter->first,
+                            col_iter->second * c);
+                }
+            }
+            return sparse_matrix;
+        }
+
+        vector<double>& mult(const vector<double>& vec) {
             auto ret = vector<double>(this->n);
 
             if (this->default_value != 0 && this->by_row) {
@@ -90,7 +120,9 @@ class sparse_matrix {
             return ret;
         }; // modifica m in-place
 
-        double norm(int norm); // 1 o 2
+        double norm(int norm) {
+        }
+
         void put(int i, int j, double val) {
             if (!this->by_row) {
                 assert("Column ordered matrix not supported");
