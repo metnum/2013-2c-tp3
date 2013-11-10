@@ -32,7 +32,7 @@ using namespace std;
 // De las cuales solo necesitamos
 // hacer 0 la posicion A(2, 1)
 
-const sparse_matrix* QR_decomposition_one_iteration(sparse_matrix& A, sparse_matrix& b)
+const sparse_matrix* QR_decomposition_two_iterations(sparse_matrix& A, sparse_matrix& b)
 {
     // n = size(A, 2);
     // R = A;
@@ -55,18 +55,41 @@ const sparse_matrix* QR_decomposition_one_iteration(sparse_matrix& A, sparse_mat
     // X = R \ b;
     // return
     int m = A->m;
-    int n = B->n;
+    int n = A->n;
 
-    sparse_matrix& x0 = A.get_column(0);
+    // First iteration
+    sparse_matrix& x = A.get_column(0);
     
-    sparse_matrix& e0 = sparse_matrix.new(m, 1);
-    e0.put(0, 0, 1.0);
+    sparse_matrix& e = sparse_matrix.new(m, 1);
+    e.put(0, 0, 1.0);
 
-    double alpha = sign(x0.get(0, 0)) * x0.norm(2);
+    double alpha = sign(x.get(0, 0)) * x.norm(2);
 
-    sparse_matrix& v = x0 - (x0.mult(e0));
+    sparse_matrix& v = x.sub(e.mult(alpha));
     v = v.mult(1.0 / v.norm(2));
+
+    A = A.sub(v.build_vv().mult(A).mult(2));
+    b = b.sub(v.build_vv().mult(b).mult(2));
     
+    // Second iteration
+    x = A.get_column(1);
+
+    e = sparse_matrix.new(m, 1);
+    e.put(1, 0, 1.0);
+
+    alpha = sign(x.get(1, 0)) * x.norm(2);
+
+    v = x.sub(e.mult(alpha));
+    v = v.mult(1.0 / v.norm(2));
+
+    A = A.sub(v.build_vv().mult(A).mult(2));
+    b = b.sub(v.build_vv().mult(b).mult(2));
+
+    return backwards_substitution(A, b)
+}
+
+const sparse_matrix* backwards_substitution(sparse_matrix* A, sparse_matrix* b) {
+
 }
 
 
