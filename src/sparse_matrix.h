@@ -14,7 +14,29 @@ double norm(vector<double> vec, int n) {
         for(auto v&: vec) {
             accum += abs(v);
         }
+    } else if (n == 2) {
+        for (auto v&: vec) {
+            accum += v*v;
+        }
+        accum = sqrt(accum);
     }
+
+    return accum;
+}
+
+vector<double>& vec_mul_inplace(double c, vector<double>& vec) {
+    for(auto v&: vec) {
+        v *= c;
+    }
+    return vec;
+}
+
+vector<double>& operator-(vector<double>& v1, vector<double>& v2) {
+    auto ret = vector<double>(v1.size);
+    for(int i=0; i < v1.size; i++) {
+        ret[i] = v1[i] - v2[i];
+    }
+    return ret;
 }
 
 class sparse_matrix {

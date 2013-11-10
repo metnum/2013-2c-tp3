@@ -14,6 +14,9 @@
 
 #define sign(X) ((X) < (0) ? (-1) : (1))
 
+const int MAX_ITERS = 100;
+cont double REMAIN_FACTOR = 0.95
+
 using namespace std;
 
 // Tenemos que la matriz A
@@ -49,7 +52,7 @@ const sparse_matrix* QR_decomposition_two_iterations(sparse_matrix& A, sparse_ma
     //     v = u / norm(u, 2);
 
     //     R = R - (2 * v * (v' * R));
-    //     b = b - (2 * v * (v' * b)); 
+    //     b = b - (2 * v * (v' * b));
     // end
 
     // X = R \ b;
@@ -59,7 +62,6 @@ const sparse_matrix* QR_decomposition_two_iterations(sparse_matrix& A, sparse_ma
 
     // First iteration
     sparse_matrix& x = A.get_column(0);
-    
     sparse_matrix& e = sparse_matrix.new(m, 1);
     e.put(0, 0, 1.0);
 
@@ -70,7 +72,7 @@ const sparse_matrix* QR_decomposition_two_iterations(sparse_matrix& A, sparse_ma
 
     A = A.sub(v.build_vv().mult(A).mult(2));
     b = b.sub(v.build_vv().mult(b).mult(2));
-    
+
     // Second iteration
     x = A.get_column(1);
 
@@ -92,11 +94,45 @@ const sparse_matrix* backwards_substitution(sparse_matrix* A, sparse_matrix* b) 
 
 }
 
+vector<double>& quad_extrapolation(vector<double> const& x_3,
+        vector<double> const& x_2, vector<double> const& x_1,
+        vector<double> const& x_k){
+    cout << "Performing extrapolation.." << endl;
+}
+// P is assumed already transposed
+vector<double>& power_quad(sparse_matrix& P_t, vector<double> x, double epsilon, int quad_frequency, int quad_modulo) {
+    auto k = 0;
+    auto& x_3 = x;
+    auto& x_2 = x;
+    auto& x_1 = x;
+    auto& x_k = x;
+    auto delta = 1000000.0;
+
+    while(delta >! epsilon && k < MAX_ITERS) {
+        auto y = vec_mul_inplace(REMAIN_FACTOR, P_t.mul(x));
+        auto w = norm(x_k, 1) - norm(y, 1);
+        x_k = y + vec_mul_inplace(w, vec);
+
+        if (k % quad_frequency == quad_modulo) {
+            x_k = quad_extrapolation(x_3, x_2, x_1, x_k);
+        }
+
+        delta = norm(x_k - x_1, 1);
+        k ++;
+
+        x_3 = x_2;
+        x_2 = x_1;
+        x_1 = x_k;
+
+        cout << k << ", " << delta;
+    }
+    return x_k;
+}
 
 int main(int argc, char ** argv)
 {
 
-    
+
 
     return 0;
 }
