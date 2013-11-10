@@ -1,0 +1,100 @@
+\section{Introducción Teórica}
+
+Veamos primero cómo utilizando el algoritmo de Kamvar podemos optimizar el espacio requerido en memoria para el almacenamiento de la matriz $P_2$ y el tiempo de ejecución requerido para hacer la multiplicación entre matrices y vectores.\\
+
+\newcommand{\vectornorm}[1]{\left\|#1\right\|}
+Queremos ver que el algoritmo propuesto por \cite[Algoritmo 1]{Kamvar2003} es equivalente
+a la operación $\vec{y} = A\vec{x}$, para $A=(cP' + (1-c)E)^{t}$, donde $P'$ es la matriz 
+estocástica por filas de transiciones de links ajustada para considerar saltos aleatorios
+en páginas sin outlinks, y $E$ es la matriz uniforme de teletransportación con valor $\frac{1}{n}$ en cada celda.
+
+Para ello, expandimos las ecuaciones de ambos y veremos que las mismas producen el mismo cálculo.
+
+Primero, la matrix $P^{t}$ se desarrolla como 
+\begin{align*}
+(cP + (1 - c)E)^{t} \vec{x}
+\end{align*}
+
+Y la matrix de \cite[Algoritmo 1]{Kamvar 2003} como
+\begin{align*}
+cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v}
+\end{align*}
+
+donde $\vec{y}$ es el vector resultante de $cP^{t}\vec{x}$ y $\vec{v}$ es el vector de probabilidad
+uniforme de valor $\frac{1}{n}$ en cada elemento. Luego planteamos la equivalencia
+
+\begin{align*}
+(cP + (1-c)E)^{t} \vec{x} v&= cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v} \\
+cP^{t}\vec{x} + (1-c)E^{t}\vec{x} &= cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v} \\
+(1-c)E^{t}\vec{x} &= (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v}
+\end{align*}
+
+\subsection{Lema: $P^{t} \vec{x}$ preserva la Norma 1 de $\vec{x}$}
+Sea $P^{t}$ una matriz estocástica por columnas, luego los elementos de cada columna suman 1.
+
+Luego $P^{t}$ describe una transformación lineal de $\vec{x}$ donde la suma de los valores de cada $x_i$
+se reparte en los $y_i$ resultantes (por ser cada $y_i$ una combinación lineal de los $x_i$.) 
+Como cada columna de $P$ suma $1$, y cada elemento de $x$  se termina
+multiplicando por los elementos de una columna, y además los valores de $P$ y $ x$  son positivos,
+entonces la ecuación
+\begin{align*}
+\sum_{i=1}^{n} |x_i| \\
+\end{align*}
+\centerline{es equivalente a}
+\begin{align*}
+\sum_{i=1}^{n} |y_i|
+\end{align*}
+Luego $P^{t}$ preserva norma 1.
+
+Volviendo al problema, si observamos que la norma 1 de $y$  es
+\begin{align*}
+\vectornorm{\vec{y}}_1 &= \vectornorm{cP^{t} \vec{x}}_1 \\
+               &= c\vectornorm{\vec{x}}_1
+\end{align*}
+entonces podemos ver que
+
+\begin{align*}
+\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1 &= \vectornorm{\vec{x}}_1 - c \vectornorm{\vec{x}}_1 \\
+                                        &= (1-c) \vectornorm{\vec{x}}_1 \\
+                                        &= (1-c) \vectornorm{\vec{x}}_1
+\end{align*}
+
+por ende
+\begin{align*}
+(\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1)\vec{v} &= (1-c) \vectornorm{\vec{x}}_1 \vec{v}
+\end{align*}
+
+entonces el método de algortimo 1 tiene la forma
+\begin{align*}
+cP^{t}\vec{x} + (1-c) \vectornorm{\vec{x}}_1 \vec{v}
+\end{align*}
+
+Si observamos la segunda mitad de la definición de $P^{t}$, es decir, $(1-c)E^{t}$, veremos que el producto
+a la izquierda por $\vec{x}$ resulta en una matrix con la forma
+
+\begin{align*}
+E^{t}\vec{x} &= 
+\begin{bmatrix}
+\frac{1-c}{n} \sum_{i=1}^{n} |x_{i}|  \\
+\cdots  \\
+\cdots  \\
+\cdots  \\
+\cdots  \\
+\frac{1-c}{n} \sum_{i=1}^{n} |x_{i}|  \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+\frac{1-c}{n} \vectornorm{\vec{x}}_1 \\
+\cdots  \\
+\cdots  \\
+\cdots  \\
+\cdots  \\
+\frac{1-c}{n} \vectornorm{\vec{x}}_1 \\
+\end{bmatrix}
+=
+(1-c)\frac{1}{n} \vectornorm{\vec{x}}_1
+\end{align*}
+
+Con ello concluimos que los dos términos del algoritmo de Kamvar son equivalentes
+a la matriz $A$ de transiciones. $ \blacksquare $
+

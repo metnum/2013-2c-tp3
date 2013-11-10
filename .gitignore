@@ -11,3 +11,8 @@
 *.lai
 *.la
 *.a
+
+# Latex aux files
+*.aux
+*.log
+*.toc
