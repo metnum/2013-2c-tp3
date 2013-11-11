@@ -1,8 +1,9 @@
 #coding: utf-8
 # Implementación en Python del TP3 para prototipos y demas yerbas
 
-from numpy import matrix, any
+from numpy import matrix, any, zeros
 from numpy.linalg import norm, qr, solve
+from scipy.sparse import lil_matrix
 import sys
 
 # Operaciones
@@ -43,18 +44,34 @@ TELEPORTATION_FACTOR = 1 - REMAIN_FACTOR
 
 
 def load_data(raw_data):
-    pages = int(raw_data.pop(0))
-    links = int(raw_data.pop(0))
+    try:
+        pages = int(raw_data.pop(0))
+        links = int(raw_data.pop(0))
+    except ValueError:
+        # Since the amount of pages and links
+        # is not given explicitly, we're gonna
+        # find it manually
+        links = len(raw_data) + 1
 
-    graph = matrix(data=([[0.0] * pages] * pages))
+        lines = [ line.split() for line in raw_data ]
+        lines = [ max([int(line[0]), int(line[1])]) for line in lines ]
+
+        pages = max(lines)
+
+    print "pages: %s" % pages
+    print "links: %s" % links
+
+    graph = lil_matrix((pages, pages))
 
     for link in raw_data[0: links + 1]:
         src, dest = [int(s) for s in link.split()]
         graph[src - 1, dest - 1] = 1
 
-    #normalize by the numbe of outdegrees
+    #normalize by the number of outdegrees
     for rownum in range(graph.shape[0]):
-        if norm(graph[rownum, :]) != 0:
+        print "iteracion: %s" % rownum
+        import ipdb; ipdb.set_trace()
+        if norm(graph[rownum, :].data[0]) != 0:
             graph[rownum, :] = (graph[rownum, :] /
                                 sum([1 if graph[rownum, i] != 0 else 0 for
                                      i in range(graph.shape[1])]))
@@ -108,6 +125,7 @@ def pagerank_power_kamvar(P, x, epsilon):
     n = len(x)
     v = matrix([ 1.0/n for i in range(n) ]).T
 
+    deltas = []
     while delta >= epsilon and k < MAX_ITERS:
         # Optimized Ax multiplication from algorithm 1
         y = REMAIN_FACTOR * P.T * x
@@ -116,8 +134,9 @@ def pagerank_power_kamvar(P, x, epsilon):
 
         delta = norm(x_k - x, 1)
         k += 1
-
-    return x_k
+        deltas.append(delta)
+        print "%s: %s" % (k, delta)
+    return (x_k, deltas)
 
 
 def solve_gammas(Y, y_k):
@@ -166,6 +185,7 @@ def power_quad(P, x, epsilon, quad_freq):
     x_1 = x
     x_k = x
 
+    deltas = []
     while delta >= epsilon and k < MAX_ITERS:
         # Optimized Ax multiplication from algorithm 1
         y = REMAIN_FACTOR * P.T * x_k
@@ -180,20 +200,36 @@ def power_quad(P, x, epsilon, quad_freq):
         x_3 = x_2
         x_2 = x_1
         x_1 = x_k
+
+        deltas.append(delta)
         print "%s: %s" % (k, delta)
-    return x_k
+    return (x_k, deltas)
 
 
 if __name__ == '__main__':
     filename = sys.argv[1]
+    print "Starting to parse the file"
     raw_data = open(filename, 'r').readlines()
 
     web = load_data(raw_data)
 
     # Create P''
+    print "Build uniform"
     D = build_uniform(web)
+    print "Building P"
     P = P_1(web, D)
     #P2 = P_2(P, v(web))
 
-    power_quad(P, v(web), 0.00001, 15)
+    res = power_quad(P, v(web), 0.00001, 15)[1]
+    
+    f = open(filename + '.out', 'w')
+    for i in xrange(0, len(res)):
+        f.write(str(res[i]) + "\n")
+    f.close()
 
+    res = pagerank_power_kamvar(P, v(web), 0.00001)[1]
+
+    f = open(filename + '.out', 'w')
+    for i in xrange(0, len(res)):
+        f.write(str(res[i]) + "\n")
+    f.close()
