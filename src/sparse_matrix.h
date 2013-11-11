@@ -12,14 +12,14 @@ using namespace std;
 typedef vector<double> vec;
 typedef vector<vec> matrix;
 
-double norm(vec v, int n) {
+double norm(vec const& v, int n) {
     double accum = 0;
     if (n == 1) {
-        for(double& val : v) {
+        for(auto& val : v) {
             accum += abs(val);
         }
     } else if (n == 2) {
-        for (double& val : v) {
+        for (auto& val : v) {
             accum += val * val;
         }
         accum = sqrt(accum);
@@ -28,11 +28,12 @@ double norm(vec v, int n) {
     return accum;
 }
 
-vec& vec_mul_inplace(double c, vec& v) {
-    for(auto& val: v) {
-        val *= c;
+vec* vec_mul(double c, vec& v) {
+    vec* ret = new vec(v.size());
+    for(int i = 0; i < v.size(); i++) {
+        (*ret)[i] = v[i] * c;
     }
-    return v;
+    return ret;
 }
 
 vec operator -(vec& v1, vec& v2) {
@@ -66,16 +67,25 @@ vec operator *(vec const& v1, double c) {
     for (int i = 0; i < v1.size(); i++) {
         ret[i] = v1[i] * c;
     }
-    return ret
+    return ret;
 }
 
-vec operator *(matrix const& m, double c) {
+/*
+matrix operator *(matrix const& m, double c) {
     auto ret = new matrix(m.size(), vec(m[0].size(), 0));
 
     for (int i = 0; i < m.size(); i++) {
         for (int j = 0; j < m[i].size(); j++) {
-            (*ret)[i][j] *+= c;
+            (*ret)[i][j] += c;
         }
+    }
+    return ret;
+} */
+
+vec operator +(vec const& v1, vec const& v2) {
+    auto ret = vec(v1.size());
+    for (int i = 0; i < v1.size(); i++) {
+        ret[i] = v1[i] + v2[i];
     }
     return ret;
 }
@@ -114,17 +124,14 @@ class sparse_matrix {
             assert(!this->by_row || !m.by_row);
         }
 
-        void sub_inplace(sparse_matrix& m) {
-        }
-
-
+        /*
         void mult_inplace(double c) {
             for (auto& row_iter : this->data) {
                 for (auto& col_it : row_iter.second) {
                     col_it.second = col_it.second * c;
                 }
             }
-        }
+        } */
 
         vec* mult(const vec& v) {
              // Multiplica esta matrix por el vector v y devuelve un puntero a
@@ -179,9 +186,11 @@ class sparse_matrix {
         }
 
         double get(int i, int j, double if_empty) {
-            if (auto row = this->data.at(i)) {
-                if (auto col = row->at(j)) {
-                    return col;
+            matrix_iter row = this->data.find(i);
+            if (row != this->data.end()) {
+                col_iter col = row->second.find(j);
+                if (col != row->second.end()) {
+                    return col->second;
                 }
             }
             return this->default_value;
@@ -189,6 +198,7 @@ class sparse_matrix {
 
         sparse_matrix& get_column(int i);
 
+        /*
         void row_divide(int i, double val);
         void row_sum(int i, double c);
         void row_sum(int i, sparse_matrix& row);
@@ -196,5 +206,6 @@ class sparse_matrix {
         void col_sum(int j, double c);
         void col_sum(int j, sparse_matrix& col);
         void col_sub(int j, sparse_matrix& col);
+        */
 };
 

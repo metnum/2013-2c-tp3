@@ -18,6 +18,8 @@ using namespace std;
 const int MAX_ITERS = 100;
 const double REMAIN_FACTOR = 0.95;
 
+
+/*
 matrix* identity(int n) {
     matrix* m = new matrix(n, vec(n, 0));
     for (int i = 0; i < n; i++) {
@@ -26,18 +28,23 @@ matrix* identity(int n) {
 
     return m;
 }
+*/
 
 
 // Canonical vector with first position set to 1.
+/*
 vec* canonical(int n) {
     vec* v = new vec(n, 0);
     (*v)[0] = 1;
     return v;
 }
+*/
 
 /*
  * Create a new matrix from v * v'
  */
+
+/*
 matrix* mat_vec_transposed(vec& v) {
     auto mat = new matrix(v.size(), vec(v.size(), 0));
 
@@ -48,10 +55,12 @@ matrix* mat_vec_transposed(vec& v) {
     }
     return mat;
 }
+*/
 
 /*
  * Compute Q transposed and R
  */
+/*
 void qtr_r(matrix& Y, matrix& q, matrix& r) {
     int m = Y.size();
     int n = Y[0].size();
@@ -87,12 +96,16 @@ void qtr_r(matrix& Y, matrix& q, matrix& r) {
     r = Q2 * A;
     q = Q_2 * Q_1;
 }
+*/
 
+/*
 vec& backwards_substitution(matrix& A, vec& b) {
     vec ret = {0, 0};
     return ret;
 }
+*/
 
+/*
 const matrix& transpose_inplace(matrix& m) {
     for(int i = 0; i < m.size(); i++) {
         for(int j = 0; j < m[i].size(); j++) {
@@ -104,7 +117,9 @@ const matrix& transpose_inplace(matrix& m) {
     }
     return m;
 }
+*/
 
+/*
 void solve_gammas(matrix& Y, vec y_k, double& gamma1, double& gamma2) {
     matrix q, r;
     qtr_r(Y, q, r);
@@ -113,10 +128,12 @@ void solve_gammas(matrix& Y, vec y_k, double& gamma1, double& gamma2) {
     gamma1 = solution[0];
     gamma2 = solution[1];
 }
+*/
 
 /* Build Y as a combination of two column vectors */
+/*
 matrix& build_Y(vec const& y_1, vec const& y_2) {
-    /* Y is row_major */
+    // Y is row_major
     auto Y = matrix(y_1.size());
     for (int i=0; i < y_1.size(); i++) {
         Y[i][0] = y_1[0];
@@ -125,7 +142,9 @@ matrix& build_Y(vec const& y_1, vec const& y_2) {
 
     return Y;
 }
+*/
 
+/*
 vec& quad_extrapolation(vec const& x_3,
         vec const& x_2, vec const& x_1,
         vec const& x_k){
@@ -152,20 +171,28 @@ vec& quad_extrapolation(vec const& x_3,
     auto x = (beta_0 * x_2 + beta_1 * x_1 + beta_2) * x_k
     return x;
 }
+*/
+
+vec* build_uniform(int size) {
+    auto value = 1.0 / size;
+    return new vec(size, value);
+}
 
 // P is assumed already transposed
-vec& power_quad(sparse_matrix& P_t, vec x, double epsilon, int quad_frequency, int quad_modulo) {
+vec& power_quad(sparse_matrix& P_t, vec& x, double epsilon) { //, int quad_frequency, int quad_modulo) {
     auto k = 0;
     auto& x_3 = x;
     auto& x_2 = x;
     auto& x_1 = x;
     auto& x_k = x;
+    vec* v = build_uniform(x.size());
     auto delta = 1000000.0;
 
-    while(delta >! epsilon && k < MAX_ITERS) {
-        auto y = vec_mul_inplace(REMAIN_FACTOR, P_t.mul(x_k));
-        auto w = norm(x_k, 1) - norm(y, 1);
-        x_k = y + vec_mul_inplace(w, vec);
+    while(delta >= epsilon && k < MAX_ITERS) {
+        vec* y = vec_mul(REMAIN_FACTOR, *P_t.mult(x_k));
+        double w = norm(x_k, 1) - norm(*y, 1);
+        vec* w_v = vec_mul(w, *v);
+        x_k = *y + *(w_v);
 
         /*
         if (k % quad_frequency == quad_modulo) {
@@ -175,7 +202,10 @@ vec& power_quad(sparse_matrix& P_t, vec x, double epsilon, int quad_frequency, i
 
         // TODO: agregar criterior relativo de detencion como el python
         delta = norm(x_k - x_1, 2);
-        k ++;
+        k++;
+
+        delete y;
+        delete w_v;
 
         x_3 = x_2;
         x_2 = x_1;
@@ -183,10 +213,46 @@ vec& power_quad(sparse_matrix& P_t, vec x, double epsilon, int quad_frequency, i
 
         cout << k << ", " << delta;
     }
+
+    delete v;
+
     return x_k;
 }
 
-int main(int argc, char ** argv)
-{
+sparse_matrix* load_matrix(string filename) {
+    ifstream file(filename);
+
+    if (!file.is_open()) {
+        cout << "No se pudo abrir el archivo " << filename << endl;
+        exit(1);
+    }
+
+    double n;
+    double links;
+
+    file >> n;
+    file >> links;
+
+    auto matrix = new sparse_matrix(n, n);
+
+    int i, j;
+
+    for (auto k = 0; k < links; k++) {
+        file >> i;
+        file >> j;
+        matrix->put(i, j, 1);
+    }
+
+    return matrix;
+}
+
+int main(int argc, char ** argv) {
+    if (argc < 2) {
+        cout << "Usage: tp3 [matrix_filename]" << endl;
+        exit(1);
+    }
+
+    string filename = argv[1];
+    auto matrix = load_matrix(filename);
     return 0;
 }
