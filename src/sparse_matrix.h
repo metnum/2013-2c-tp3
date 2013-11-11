@@ -97,9 +97,9 @@ class sparse_matrix {
         }
 
         void mult_inplace(double c) {
-            for (matrix_iter row_iter : this->data.begin()) {
-                for (col_iter col_it : std::begin(row_iter.second)) {
-                    col_it.second = col_it.second * c;
+            for (matrix_iter row_it = this->data.begin(); row_it != this->data.end(); row_it++) {
+                for (col_iter col_it = row_it->second.begin(); col_it != row_it->second.end(); col_it++) {
+                    col_it->second = col_it->second * c;
                 }
             }
         }
