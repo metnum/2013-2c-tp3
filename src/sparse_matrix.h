@@ -11,8 +11,6 @@ using namespace std;
 
 typedef vector<double> vec;
 typedef vector<vec> matrix;
-typedef std::map<int, double>::iterator col_iter;
-typedef std::map<int, col_iter>::iterator matrix_iter;
 
 double norm(vec v, int n) {
     double accum = 0;
@@ -63,7 +61,11 @@ vec operator *(vec const& v1, vec const& v2) {
 
 class sparse_matrix {
     private:
-        map<int, map <int, double>> data;
+        typedef map<int, double> my_column;
+        typedef map<int, my_column> my_matrix;
+        typedef my_column::iterator col_iter;
+        typedef my_matrix::iterator matrix_iter;
+        my_matrix data;
 
     public:
         int m, n;
