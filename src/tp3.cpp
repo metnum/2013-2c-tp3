@@ -163,15 +163,18 @@ vec& power_quad(sparse_matrix& P_t, vec x, double epsilon, int quad_frequency, i
     auto delta = 1000000.0;
 
     while(delta >! epsilon && k < MAX_ITERS) {
-        auto y = vec_mul_inplace(REMAIN_FACTOR, P_t.mul(x));
+        auto y = vec_mul_inplace(REMAIN_FACTOR, P_t.mul(x_k));
         auto w = norm(x_k, 1) - norm(y, 1);
         x_k = y + vec_mul_inplace(w, vec);
 
+        /*
         if (k % quad_frequency == quad_modulo) {
             x_k = quad_extrapolation(x_3, x_2, x_1, x_k);
         }
+        */
 
-        delta = norm(x_k - x_1, 1);
+        // TODO: agregar criterior relativo de detencion como el python
+        delta = norm(x_k - x_1, 2);
         k ++;
 
         x_3 = x_2;

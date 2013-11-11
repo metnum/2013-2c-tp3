@@ -223,8 +223,8 @@ if __name__ == '__main__':
 
     #from ipdb import set_trace; set_trace()
     # Create P''
-    #dense = web.todense()
-    #P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
+    dense = web.todense()
+    P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
 
     print "Computing PageRank with regular Power Method..."
     res = pagerank_power_kamvar(web, v(web.shape[0]), 'rel', 0.0001)
@@ -234,4 +234,4 @@ if __name__ == '__main__':
     print res / norm(res, 2)
 
     # Uncomment to test result
-    #print P2.T.dot(res) / norm(res, 2)
+    print P2.T.dot(res) / norm(res, 2)
