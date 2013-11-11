@@ -11,6 +11,8 @@ using namespace std;
 
 typedef vector<double> vec;
 typedef vector<vec> matrix;
+typedef std::map<int, double>::iterator col_iter;
+typedef std::map<int, col_iter>::iterator matrix_iter;
 
 double norm(vec v, int n) {
     double accum = 0;
@@ -45,7 +47,7 @@ vec operator -(vec& v1, vec& v2) {
 
 vec operator /(vec& v, double c) {
     auto copied = v;
-    transform(begin(v), end(v), begin(copied), [&](double d) { return d/c; });
+    transform(std::begin(v), std::end(v), std::begin(copied), [&](double d) { return d/c; });
     return copied;
 }
 
@@ -93,9 +95,9 @@ class sparse_matrix {
         }
 
         void mult_inplace(double c) {
-            for(auto& row_iter: begin(this->data)) {
-                for(auto& col_iter: begin(row_iter.begin) {
-                    col_iter->second = col_iter->second * c;
+            for (matrix_iter row_iter : this->data.begin()) {
+                for (col_iter col_it : std::begin(row_iter.second)) {
+                    col_it.second = col_it.second * c;
                 }
             }
         }
@@ -103,7 +105,7 @@ class sparse_matrix {
         sparse_matrix& mult(double c) {
             auto& ret = sparse_matrix(this->m, this->n, this->default_value *= c, this->by_row);
             for(auto& row_iter: this->data.begin()) {
-                for(auto col_iter: row_iter.begin()) {
+                for(auto col_iter: row_iter.second.begin()) {
                     ret->put(row_iter->first, col_iter->first,
                             col_iter->second * c);
                 }
