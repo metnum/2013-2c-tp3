@@ -79,11 +79,12 @@ void qtr_r(matrix& Y, matrix& q, matrix& r) {
 
     // Build R and Q_t
     r = Q2 * A;
-    q = (Q_2 * Q_1);
+    q = Q_2 * Q_1;
 }
 
-const sparse_matrix* backwards_substitution(sparse_matrix* A, sparse_matrix* b) {
-
+vec& backwards_substitution(matrix& A, vec& b) {
+    vec ret = {0, 0};
+    return ret;
 }
 
 const matrix& transpose_inplace(matrix& m) {
@@ -101,7 +102,7 @@ const matrix& transpose_inplace(matrix& m) {
 void solve_gammas(matrix& Y, vec y_k, double& gamma1, double& gamma2) {
     matrix q, r;
     qtr_r(Y, q, r);
-    auto right_size = transpose_inplace(Q) * -1 * y_k;
+    auto right_size = transpose_inplace(q) * -1 * y_k;
     auto& solution = backwards_substitution(r, right_size);
     gamma1 = solution[0];
     gamma2 = solution[1];
@@ -178,8 +179,5 @@ vec& power_quad(sparse_matrix& P_t, vec x, double epsilon, int quad_frequency, i
 
 int main(int argc, char ** argv)
 {
-
-
-
     return 0;
 }

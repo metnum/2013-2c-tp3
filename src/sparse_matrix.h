@@ -1,24 +1,25 @@
-#ifndef _MATRIZRALA_H
-#define	_MATRIZRALA_H
-
+#include "assert.h"
 #include <map>
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <iterator>
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 
-typedef <vector<double> vec;
+typedef vector<double> vec;
 typedef vector<vec> matrix;
 
 double norm(vec v, int n) {
     double accum = 0;
     if (n == 1) {
-        for(auto val&: v) {
+        for(double& val : v) {
             accum += abs(val);
         }
     } else if (n == 2) {
-        for (auto val&: v) {
+        for (double& val : v) {
             accum += val * val;
         }
         accum = sqrt(accum);
@@ -28,33 +29,30 @@ double norm(vec v, int n) {
 }
 
 vec& vec_mul_inplace(double c, vec& v) {
-    for(auto val&: v) {
+    for(auto& val: v) {
         val *= c;
     }
     return v;
 }
 
-vec& operator -(vec& v1, vec& v2) {
-    auto ret = vec(v1.size);
-    for(int i=0; i < v1.size; i++) {
+vec operator -(vec& v1, vec& v2) {
+    auto ret = vec(v1.size());
+    for(int i=0; i < v1.size(); i++) {
         ret[i] = v1[i] - v2[i];
     }
     return ret;
 }
 
-vec& operator /(vec& v, double c) {
+vec operator /(vec& v, double c) {
     auto copied = v;
-    transform(begin(v), end(v), begin(copied), [](double d) { return d/c; });
+    transform(begin(v), end(v), begin(copied), [&](double d) { return d/c; });
     return copied;
 }
 
-vec& operator *(vec const& v1, vec const& v2) {
+vec operator *(vec const& v1, vec const& v2) {
     auto ret = vec(v1.size());
 
-    if (v1.size() != v2.size()) {
-        assert("Vector sizes not equal");
-    }
-
+    assert(v1.size() != v2.size());
     for (int i=0; i < v1.size(); i++) {
         ret[i] = v1[i] * v2[i];
     }
@@ -79,24 +77,24 @@ class sparse_matrix {
 
         void sum(double c) {
             this->default_value += c;
-            for(auto &kv: this->data) {
-                kv.second += c;
+            for(auto& row: this->data) {
+                for (auto& col: row.second) {
+                    col.second += c;
+                }
             }
         }
 
         void sum(sparse_matrix& m) {
             /* Default case: row-optimized left matrix, column-optimized right matrix */
-            if (!this->by_row || !m->by_row) {
-                assert("Only row-optimized source and column-optimized target supported");
-            }
+            assert(!this->by_row || !m.by_row);
         }
 
         void sub_inplace(sparse_matrix& m) {
         }
 
         void mult_inplace(double c) {
-            for(auto& row_iter: this->data.begin()) {
-                for(auto col_iter: row_iter.begin()) {
+            for(auto& row_iter: begin(this->data)) {
+                for(auto& col_iter: begin(row_iter.begin) {
                     col_iter->second = col_iter->second * c;
                 }
             }
@@ -149,17 +147,15 @@ class sparse_matrix {
             assert("Multiplication method not supported");
         }
 
-        sparse_matrix& mult(sparse_matrix& m2, new_by_col=true) {
+        sparse_matrix& mult(sparse_matrix& m2, bool new_by_col=true) {
             auto ret = sparse_matrix(this->m, m2->n, default_value=0, !new_by_col);
 
             /* Default case: row-optimized left matrix, column-optimized right matrix */
             //if (this->by_row && !m->by_row) {
                 /* We have to multiply all the elements */
-                if(this->default_value != 0) {
-
-                }
+            assert(0);
+            if(this->default_value != 0) {
             }
-
             return ret;
         }; // modifica m in-place
 
@@ -167,10 +163,7 @@ class sparse_matrix {
         }
 
         void put(int i, int j, double val) {
-            if (!this->by_row) {
-                assert("Column ordered matrix not supported");
-            }
-
+            assert(!this->by_row);
             this->data[i][j] = val;
         }
 
@@ -192,5 +185,5 @@ class sparse_matrix {
         void col_sum(int j, double c);
         void col_sum(int j, sparse_matrix& col);
         void col_sub(int j, sparse_matrix& col);
-}
+};
 

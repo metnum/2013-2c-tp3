@@ -1,14 +1,5 @@
-OBJECTOS   = main.o
-EJECUTABLE = main
-CXXFLAGS   = -g -Wall
+CC=g++
+CFLAGS=-I.
 
-all: $(OBJECTOS)
-	g++ $(CXXFLAGS) -o $(EJECUTABLE) $(OBJECTOS)
-
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-clean:
-	@rm -Rf $(EJECUTABLE).exe $(EJECUTABLE) $(OBJECTOS)
-
-new: clean all
+tp1: tp3.cpp
+	$(CXX) -std=c++11 -o bin/tp3 tp3.cpp $(CFLAGS)
