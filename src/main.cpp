@@ -9,98 +9,145 @@
 #include <stdexcept>
 #include <string>
 #include <string.h>
+#include <functional>
 
 #include "sparse_matrix.h"
-
-#define sign(X) ((X) < (0) ? (-1) : (1))
 
 const int MAX_ITERS = 100;
 cont double REMAIN_FACTOR = 0.95
 
 using namespace std;
 
-// Tenemos que la matriz A
-// es de m x 2 tiene una
-// similar a esta:
-//
-//   A    x   =   b
-// +--+  +-+     +-+
-// |**|  |x|  =  |b|
-// |**|  |y|     |c|
-// |..|  +-+     +-+
-// |..|
-// |**|
-// +--+
-//
-// De las cuales solo necesitamos
-// hacer 0 la posicion A(2, 1)
 
-const sparse_matrix* QR_decomposition_two_iterations(sparse_matrix& A, sparse_matrix& b)
-{
-    // n = size(A, 2);
-    // R = A;
-    // for i = 1:n
-    //     x = R(:, i);
+matrix& identity(int n) {
+    auto mat = vector< vector<double
+}
 
-    //     e_i = zeros(n, 1);
-    //     e_i(i) = 1;
+vec const& canonical(int n) {
+    auto v = vec(n, 0);
+    v[0] 1;
+    return v;
+}
 
-    //     alpha = sign(x(i)) * norm(x, 2);
+/*
+ * Create a new matrix from v * v'
+ */
+matrix& mat_vec_transposed(vec& v) {
+    auto mat = matrix(v.size(), vec(v.size(), 0));
 
-    //     u = x - (alpha * e_i);
+    for (int i=0; i < v.size(); i++) {
+        for (int j=0; j < v.size(); j++) {
+            mat[i][j] = v[i] * v[j];
+        }
+    }
+    return mat;
+}
 
-    //     v = u / norm(u, 2);
-
-    //     R = R - (2 * v * (v' * R));
-    //     b = b - (2 * v * (v' * b));
-    // end
-
-    // X = R \ b;
-    // return
-    int m = A->m;
-    int n = A->n;
+/*
+ * Compute Q transposed and R
+ */
+void qtr_r(matrix& Y, matrix& q, matrix& r) {
+    int m = Y.size();
+    int n = Y[0].size();
 
     // First iteration
-    sparse_matrix& x = A.get_column(0);
-    sparse_matrix& e = sparse_matrix.new(m, 1);
-    e.put(0, 0, 1.0);
+    auto column = vec(n, 0);
+    // Get first column
+    transform(begin(Y), end(Y), begin(column), [](auto v) { return v[0]; });
 
-    double alpha = sign(x.get(0, 0)) * x.norm(2);
+    alpha = norm(column, 2) * (column[0] / abs(column[0]));
+    auto u = x - canonical(n) * alpha;
+    auto v = u / norm(u, 2);
 
-    sparse_matrix& v = x.sub(e.mult(alpha));
-    v = v.mult(1.0 / v.norm(2));
+    auto Q_1 = identity(n) - mat_vec_transposed(v) * 2;
 
-    A = A.sub(v.build_vv().mult(A).mult(2));
-    b = b.sub(v.build_vv().mult(b).mult(2));
+    A = Q_1 * A;
 
     // Second iteration
-    x = A.get_column(1);
+    auto column = vec(n, 0);
 
-    e = sparse_matrix.new(m, 1);
-    e.put(1, 0, 1.0);
+    // Advance to the second element
+    auto it = begin(column);
+    it.next();
+    auto Y_it = begin(Y).next();
+    transform(Y_it, end(Y), it, [](auto v) { return v[1]; });
 
-    alpha = sign(x.get(1, 0)) * x.norm(2);
+    alpha = norm(column, 2) * (column[1] / abs(column[1]));
+    auto u = x - canonical(n1) * alpha;
+    auto v = u / norm(u, 2);
+    auto Q_2 = identity(n) - mat_vec_transposed(v) * 2;
 
-    v = x.sub(e.mult(alpha));
-    v = v.mult(1.0 / v.norm(2));
-
-    A = A.sub(v.build_vv().mult(A).mult(2));
-    b = b.sub(v.build_vv().mult(b).mult(2));
-
-    return backwards_substitution(A, b)
+    // Build R and Q_t
+    r = Q2 * A;
+    q = (Q_2 * Q_1);
 }
 
 const sparse_matrix* backwards_substitution(sparse_matrix* A, sparse_matrix* b) {
 
 }
 
-vector<double>& quad_extrapolation(vector<double> const& x_3,
-        vector<double> const& x_2, vector<double> const& x_1,
-        vector<double> const& x_k){
-    cout << "Performing extrapolation.." << endl;
+const matrix& transpose_inplace(matrix& m) {
+    for(int i = 0; i < m.size(); i++) {
+        for(int j = 0; j < m[i].size(); j++) {
+            auto temp;
+                temp = m[i][j];
+                m[i][j] = m[j][i];
+                m[j][i] = temp;
+        }
+    }
+    return m;
 }
+
+void solve_gammas(matrix& Y, vec y_k, double& gamma1, double& gamma2) {
+    matrix q, r;
+    qtr_r(Y, q, r);
+    auto right_size = transpose_inplace(Q) * -1 * y_k;
+    auto& solution = backwards_substitution(r, right_size);
+    gamma1 = solution[0];
+    gamma2 = solution[1];
+}
+
+/* Build Y as a combination of two column vectors */
+matrix& build_Y(vec const& y_1, vec const& y_2) {
+    /* Y is row_major */
+    auto Y = matrix(y_1.size());
+    for (int i=0; i < y_1.size(); i++) {
+        Y[i][0] = y_1[0];
+        Y[i][1] = y_2[0];
+    }
+
+    return Y;
+}
+
+vec& quad_extrapolation(vec const& x_3,
+        vec const& x_2, vec const& x_1,
+        vec const& x_k){
+    cout << "Performing extrapolation.." << endl;
+
+    auto y_2 = x_2 - x_3;
+    auto y_1 = x_1 - x_3;
+    auto y_k = x_k - x_3;
+
+    Y = build_Y(y_2, y_1);
+    auto gamma_3 = 1.0;
+
+    double& gamma_0 = 0.0;
+    double& gamma_1 = 0.0;
+    double& gamma_2 = 0.0;
+    double& gamma_3 = 0.0;
+
+    solve_gammas(Y, y_k, gamma_1, gamma_2);
+
+    auto gamma_0 = -(gamma_1 + gamma_2 + gamma_3);
+    auto beta_0 = gamma_1 + gamma_2 + gamma_3;
+    auto beta_1 = gamma_2 + gamma_3;
+    auto beta_2 = gamma_3;
+    auto x = (beta_0 * x_2 + beta_1 * x_1 + beta_2) * x_k
+    return x;
+}
+
 // P is assumed already transposed
-vector<double>& power_quad(sparse_matrix& P_t, vector<double> x, double epsilon, int quad_frequency, int quad_modulo) {
+vec& power_quad(sparse_matrix& P_t, vec x, double epsilon, int quad_frequency, int quad_modulo) {
     auto k = 0;
     auto& x_3 = x;
     auto& x_2 = x;

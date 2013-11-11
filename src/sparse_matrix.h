@@ -8,15 +8,18 @@
 
 using namespace std;
 
-double norm(vector<double> vec, int n) {
+typedef <vector<double> vec;
+typedef vector<vec> matrix;
+
+double norm(vec v, int n) {
     double accum = 0;
     if (n == 1) {
-        for(auto v&: vec) {
-            accum += abs(v);
+        for(auto val&: v) {
+            accum += abs(val);
         }
     } else if (n == 2) {
-        for (auto v&: vec) {
-            accum += v*v;
+        for (auto val&: v) {
+            accum += val * val;
         }
         accum = sqrt(accum);
     }
@@ -24,17 +27,36 @@ double norm(vector<double> vec, int n) {
     return accum;
 }
 
-vector<double>& vec_mul_inplace(double c, vector<double>& vec) {
-    for(auto v&: vec) {
-        v *= c;
+vec& vec_mul_inplace(double c, vec& v) {
+    for(auto val&: v) {
+        val *= c;
     }
-    return vec;
+    return v;
 }
 
-vector<double>& operator-(vector<double>& v1, vector<double>& v2) {
-    auto ret = vector<double>(v1.size);
+vec& operator -(vec& v1, vec& v2) {
+    auto ret = vec(v1.size);
     for(int i=0; i < v1.size; i++) {
         ret[i] = v1[i] - v2[i];
+    }
+    return ret;
+}
+
+vec& operator /(vec& v, double c) {
+    auto copied = v;
+    transform(begin(v), end(v), begin(copied), [](double d) { return d/c; });
+    return copied;
+}
+
+vec& operator *(vec const& v1, vec const& v2) {
+    auto ret = vec(v1.size());
+
+    if (v1.size() != v2.size()) {
+        assert("Vector sizes not equal");
+    }
+
+    for (int i=0; i < v1.size(); i++) {
+        ret[i] = v1[i] * v2[i];
     }
     return ret;
 }
@@ -91,8 +113,8 @@ class sparse_matrix {
             return sparse_matrix;
         }
 
-        vector<double>& mult(const vector<double>& vec) {
-            auto ret = vector<double>(this->n);
+        vec& mult(const vec& v) {
+            auto ret = vec(this->n);
 
             if (this->default_value != 0 && this->by_row) {
                 auto row_iter = this->data.begin();
@@ -103,7 +125,7 @@ class sparse_matrix {
                     if (row_iter->first != i) {
                         // Empty sparse row, multiply by default value
                         for(int j = 0; j < this->m; j++) {
-                            accum += vec[j] * this->default_value;
+                            accum += v[j] * this->default_value;
                         }
 
                         ret[i] = accum;
@@ -112,14 +134,13 @@ class sparse_matrix {
 
                         for(int j = 0; j < this->m; j++) {
                             if (col_iter->first == j) {
-                                accum += vec[i] * col_iter->second;
+                                accum += v[i] * col_iter->second;
                                 std::next(col_iter);
                             } else {
-                                accum += vec[i] * this->default_value;
+                                accum += v[i] * this->default_value;
                             }
                         }
-
-                        std::next(row_iter);
+                        next(row_iter);
                     }
                 }
                 return ret;
@@ -171,6 +192,5 @@ class sparse_matrix {
         void col_sum(int j, double c);
         void col_sum(int j, sparse_matrix& col);
         void col_sub(int j, sparse_matrix& col);
-
 }
 
