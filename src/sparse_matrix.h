@@ -59,6 +59,27 @@ vec operator *(vec const& v1, vec const& v2) {
     return ret;
 }
 
+
+vec operator *(vec const& v1, double c) {
+    auto ret = vec(v1.size());
+
+    for (int i = 0; i < v1.size(); i++) {
+        ret[i] = v1[i] * c;
+    }
+    return ret
+}
+
+vec operator *(matrix const& m, double c) {
+    auto ret = new matrix(m.size(), vec(m[0].size(), 0));
+
+    for (int i = 0; i < m.size(); i++) {
+        for (int j = 0; j < m[i].size(); j++) {
+            (*ret)[i][j] *+= c;
+        }
+    }
+    return ret;
+}
+
 class sparse_matrix {
     private:
         typedef map<int, double> my_column;
@@ -96,75 +117,61 @@ class sparse_matrix {
         void sub_inplace(sparse_matrix& m) {
         }
 
+
         void mult_inplace(double c) {
-            for (matrix_iter row_it = this->data.begin(); row_it != this->data.end(); row_it++) {
-                for (col_iter col_it = row_it->second.begin(); col_it != row_it->second.end(); col_it++) {
-                    col_it->second = col_it->second * c;
+            for (auto& row_iter : this->data) {
+                for (auto& col_it : row_iter.second) {
+                    col_it.second = col_it.second * c;
                 }
             }
         }
 
-        sparse_matrix& mult(double c) {
-            auto& ret = sparse_matrix(this->m, this->n, this->default_value *= c, this->by_row);
-            for(auto& row_iter: this->data.begin()) {
-                for(auto col_iter: row_iter.second.begin()) {
-                    ret->put(row_iter->first, col_iter->first,
-                            col_iter->second * c);
-                }
-            }
-            return sparse_matrix;
-        }
+        vec* mult(const vec& v) {
+             // Multiplica esta matrix por el vector v y devuelve un puntero a
+             // un nuevo vector
 
-        vec& mult(const vec& v) {
-            auto ret = vec(this->n);
+            vec * ret = new vec(this->n);
 
             if (this->default_value != 0 && this->by_row) {
+                // No entiendo que hace ninguno de estos dos chequeos, porque
+                // chequeas que el default_value sea diferente de 0? y lo del
+                // by_row ni idea :P
                 auto row_iter = this->data.begin();
 
                 for (int i = 0; i < this->n; i++) {
+                    // iterador por las filas de la matriz
+
                     double accum = 0;
 
                     if (row_iter->first != i) {
-                        // Empty sparse row, multiply by default value
+                        // La "siguiente" fila llena no es la actual
+                        // Multiplico por el default
                         for(int j = 0; j < this->m; j++) {
                             accum += v[j] * this->default_value;
                         }
 
-                        ret[i] = accum;
                     } else {
-                        auto col_iter = this->data[i].begin();
+                        // Esta fila esta llena
+                        auto col_iter = row_iter->second.begin();
 
                         for(int j = 0; j < this->m; j++) {
+                            // Itero por las columnas de la actual fila
                             if (col_iter->first == j) {
-                                accum += v[i] * col_iter->second;
-                                std::next(col_iter);
+                                // La pos j esta llena
+                                accum += v[j] * col_iter->second;
+                                next(col_iter);
                             } else {
-                                accum += v[i] * this->default_value;
+                                accum += v[j] * this->default_value;
                             }
                         }
                         next(row_iter);
                     }
+                    (*ret)[i] = accum;
                 }
                 return ret;
             }
-
             assert("Multiplication method not supported");
-        }
-
-        sparse_matrix& mult(sparse_matrix& m2, bool new_by_col=true) {
-            auto ret = sparse_matrix(this->m, m2->n, default_value=0, !new_by_col);
-
-            /* Default case: row-optimized left matrix, column-optimized right matrix */
-            //if (this->by_row && !m->by_row) {
-                /* We have to multiply all the elements */
-            assert(0);
-            if(this->default_value != 0) {
-            }
-            return ret;
-        }; // modifica m in-place
-
-        double norm(int norm) {
-        }
+         }
 
         void put(int i, int j, double val) {
             assert(!this->by_row);

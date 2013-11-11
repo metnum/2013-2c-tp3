@@ -13,31 +13,37 @@
 
 #include "sparse_matrix.h"
 
-const int MAX_ITERS = 100;
-cont double REMAIN_FACTOR = 0.95
-
 using namespace std;
 
+const int MAX_ITERS = 100;
+const double REMAIN_FACTOR = 0.95;
 
-matrix& identity(int n) {
-    auto mat = vector< vector<double
+matrix* identity(int n) {
+    matrix* m = new matrix(n, vec(n, 0));
+    for (int i = 0; i < n; i++) {
+        (*m)[i][i] = 1;
+    }
+
+    return m;
 }
 
-vec const& canonical(int n) {
-    auto v = vec(n, 0);
-    v[0] 1;
+
+// Canonical vector with first position set to 1.
+vec* canonical(int n) {
+    vec* v = new vec(n, 0);
+    (*v)[0] = 1;
     return v;
 }
 
 /*
  * Create a new matrix from v * v'
  */
-matrix& mat_vec_transposed(vec& v) {
-    auto mat = matrix(v.size(), vec(v.size(), 0));
+matrix* mat_vec_transposed(vec& v) {
+    auto mat = new matrix(v.size(), vec(v.size(), 0));
 
     for (int i=0; i < v.size(); i++) {
         for (int j=0; j < v.size(); j++) {
-            mat[i][j] = v[i] * v[j];
+            (*mat)[i][j] = v[i] * v[j];
         }
     }
     return mat;
@@ -51,31 +57,31 @@ void qtr_r(matrix& Y, matrix& q, matrix& r) {
     int n = Y[0].size();
 
     // First iteration
-    auto column = vec(n, 0);
+    auto x = vec(n, 0);
     // Get first column
-    transform(begin(Y), end(Y), begin(column), [](auto v) { return v[0]; });
+    transform(begin(Y), end(Y), begin(x), [](vector<double> v) { return v[0]; });
 
-    alpha = norm(column, 2) * (column[0] / abs(column[0]));
-    auto u = x - canonical(n) * alpha;
+    auto alpha = norm(x, 2) * (x[0] / abs(x[0]));
+    auto alpha_canonical = (*canonical(n)) * alpha;
+    auto u = x - alpha_canonical;
     auto v = u / norm(u, 2);
 
-    auto Q_1 = identity(n) - mat_vec_transposed(v) * 2;
-
-    A = Q_1 * A;
+    auto Q_1 = (*identity(n)) - (*mat_vec_transposed(v)*) * 2.0;
+    auto A = Q_1 * A;
 
     // Second iteration
-    auto column = vec(n, 0);
+    auto x = vec(n, 0);
 
     // Advance to the second element
-    auto it = begin(column);
+    auto it = begin(x );
     it.next();
     auto Y_it = begin(Y).next();
     transform(Y_it, end(Y), it, [](auto v) { return v[1]; });
 
-    alpha = norm(column, 2) * (column[1] / abs(column[1]));
+    alpha = norm(x , 2) * (x [1] / abs(x [1]));
     auto u = x - canonical(n1) * alpha;
     auto v = u / norm(u, 2);
-    auto Q_2 = identity(n) - mat_vec_transposed(v) * 2;
+    auto Q_2 = *identity(n) - mat_vec_transposed(v) * 2;
 
     // Build R and Q_t
     r = Q2 * A;
