@@ -152,13 +152,13 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
 
     n = len(x)
     # v = matrix([1.0 / n] * n).T  # we can just multiply by the const 1/n
-    prob_teleport = 1.0 / n
+    uniform_prob = 1.0 / n
 
     while delta >= epsilon and k < MAX_ITERS:
         # Optimized Ax multiplication from algorithm 1
         y = P.dot(REMAIN_FACTOR * x)
         w = norm(x, 1) - norm(y, 1)
-        x_k = y + w * prob_teleport
+        x_k = y + w * uniform_prob
 
         if criteria == 'abs':
             delta = norm(x_k - x)
