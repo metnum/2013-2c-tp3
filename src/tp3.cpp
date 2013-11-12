@@ -256,15 +256,9 @@ sparse_matrix* load_matrix(string filename) {
         colnum_count[i -1]++;
     }
 
-    for (int i=0; i < colnum_count.size(); i++) {
-        for (auto pos: matrix->get_data()) {
-            if (colnum_count[i] != 0) {
-                auto value_pos = pos.second.find(i);
-                if (value_pos != pos.second.end()) {
-                    value_pos->second = 1.0 / (double)colnum_count[i];
-                    cout << value_pos->second << endl;
-                }
-            }
+    for (auto row: matrix->get_data()) {
+        for (auto col: row.second) {
+            matrix->put(row.first, col.first, 1.0 / colnum_count[col.first]);
         }
     }
 
