@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -179,20 +180,28 @@ vec* build_uniform(int size) {
 }
 
 // P is assumed already transposed
-vec power_quad(sparse_matrix& P_t, vec& x, double epsilon) { //, int quad_frequency, int quad_modulo) {
+vec power_quad(sparse_matrix& P_t, double epsilon) { //, int quad_frequency, int quad_modulo) {
     auto k = 0;
-    auto& x_3 = x;
-    auto& x_2 = x;
-    auto& x_1 = x;
-    auto& x_k = x;
-    vec* v = build_uniform(x.size());
-    auto delta = 1000000.0;
+    shared_ptr<vec> x (build_uniform(P_t.m));
+    shared_ptr<vec> x_3 = x;
+    shared_ptr<vec> x_2 = x;
+    shared_ptr<vec> x_1 = x;
+    shared_ptr<vec> x_k = x;
+    vec* v = build_uniform(x->size());
+
+    double delta = 1000000.0;
 
     while(delta >= epsilon && k < MAX_ITERS) {
-        vec* y = vec_mul(REMAIN_FACTOR, *P_t.mult(x_k));
-        double w = norm(x_k, 1) - norm(*y, 1);
-        vec* w_v = vec_mul(w, *v);
-        x_k = *y + *(w_v);
+        cout << "Multiplicando P_t por x_k por const" << endl;
+
+        unique_ptr<vec> y (vec_mul(REMAIN_FACTOR, *(P_t.mult(*x_k))));
+
+        double w = norm(*x_k, 1) - norm(*y, 1);
+        unique_ptr<vec> w_v (vec_mul(w, *v));
+        unique_ptr<vec> res (new vec(*y + *w_v));
+        x_k = std::move(res);
+        cout << "Res: " << *x_k;
+        cout << "X previo: " << *x_1;
 
         /*
         if (k % quad_frequency == quad_modulo) {
@@ -201,22 +210,19 @@ vec power_quad(sparse_matrix& P_t, vec& x, double epsilon) { //, int quad_freque
         */
 
         // TODO: agregar criterior relativo de detencion como el python
-        delta = norm(x_k - x_1, 2);
+        delta = norm(*x_k - *x_1, 2);
         k++;
-
-        delete y;
-        delete w_v;
 
         x_3 = x_2;
         x_2 = x_1;
         x_1 = x_k;
 
-        cout << k << ", " << delta;
+        cout << "Iter " << k << ", delta=" << delta << endl;
     }
 
     delete v;
 
-    return x_k;
+    return *x_k;
 }
 
 sparse_matrix* load_matrix(string filename) {
@@ -238,12 +244,25 @@ sparse_matrix* load_matrix(string filename) {
 
     int i, j;
 
+    auto colnum_count = vector<int>(n, 0);
+
     for (auto k = 0; k < links; k++) {
         file >> i;
         file >> j;
 
-        // Matrix is build with transposed indices
+        // Matrix is built with transposed indices
         matrix->put(j - 1, i - 1, 1);
+        colnum_count[i -1]++;
+    }
+
+    for (int i=0; i < colnum_count.size(); i++) {
+        for (auto& pos: matrix->get_data()) {
+            if (colnum_count[i] != 0) {
+                if (pos.second.find(i) != pos.second.end()) {
+                    pos.second[i] = 1.0/colnum_count[i];
+                }
+            }
+        }
     }
 
     return matrix;
@@ -259,15 +278,16 @@ int main(int argc, char ** argv) {
     auto matrix = load_matrix(filename);
 
     cout << *matrix << endl;
-    vec* initial = build_uniform(matrix->n);
-    auto solution = power_quad(*matrix, *initial, 0.0001);
+    // vec* initial = build_uniform(matrix->n);
+    auto solution = power_quad(*matrix, 0.0001);
 
     /* Test sparse mult */
     /*
     auto& matrix = sparse_matrix(
     */
 
-    cout << solution[0] << ", " << solution[1] << ", " << solution[2] << "...." << solution[solution.size() - 2] << ", " << solution[solution.size() - 1] << endl;
+    cout << solution << endl;
+    // cout << solution[0] << ", " << solution[1] << ", " << solution[2] << "...." << solution[solution.size() - 2] << ", " << solution[solution.size() - 1] << endl;
     //free matrix;
     return 0;
 }

@@ -18,7 +18,7 @@ typedef my_column::iterator col_iter;
 typedef my_matrix::iterator matrix_iter;
 
 double norm(vec const& v, int n=2) {
-    double accum = 0;
+    double accum = 0.0;
     if (n == 1) {
         for(auto& val : v) {
             accum += abs(val);
@@ -88,7 +88,7 @@ matrix operator *(matrix const& m, double c) {
 } */
 
 vec operator +(vec const& v1, vec const& v2) {
-    auto ret = vec(v1.size());
+    vec ret = vec(v1.size());
     for (int i = 0; i < v1.size(); i++) {
         ret[i] = v1[i] + v2[i];
     }
@@ -141,43 +141,49 @@ class sparse_matrix {
             vec * ret = new vec(this->n);
 
             assert(this->by_row); // No implementado de otra forma
-            // No entiendo que hace ninguno de estos dos chequeos, porque
-            // chequeas que el default_value sea diferente de 0? y lo del
-            // by_row ni idea :P
             auto row_iter = this->data.begin();
 
             for (int i = 0; i < this->n; i++) {
                 // iterador por las filas de la matriz
                 double accum = 0;
 
-                if (row_iter->first != i && this->default_value != 0) {
+                if (row_iter->first != i) {
+                    if (this->default_value != 0) {
                     // La "siguiente" fila llena no es la actual
                     // Multiplico por el default
-                    for(int j = 0; j < this->m; j++) {
-                        accum += v[j] * this->default_value;
-                    }
-
-                } else {
-                    // Esta fila esta llena
-                    auto col_iter = row_iter->second.begin();
-
-                    for(int j = 0; j < this->m; j++) {
-                        // Itero por las columnas de la actual fila
-                        if (col_iter->first == j) {
-                            // La pos j esta llena
-                            accum += v[j] * col_iter->second;
-                            next(col_iter);
-                        } else {
+                        for(int j = 0; j < this->m; j++) {
                             accum += v[j] * this->default_value;
                         }
                     }
-                    next(row_iter);
-                }
+                } else {
+                    // Esta fila esta llena
+                    auto col_it = row_iter->second.begin();
 
+                    if (this->default_value != 0) {
+                        // Multiply be the empty value
+                        for(int j = 0; j < this->m; j++) {
+                            // Itero por las columnas de la actual fila
+                            if (col_it->first == j) {
+                                // La pos j esta llena
+                                accum += v[j] * col_it->second;
+                                col_it++;
+                            } else {
+                                accum += v[j] * this->default_value;
+                            }
+                        }
+                    } else {
+                        // Do not multiply by default value and a avoid a lot of ops
+                        while(col_it != row_iter->second.end()) {
+                            // Itero por las columnas de la actual fila
+                            accum += v[col_it->first] * col_it->second;
+                            col_it++;
+                        }
+                    }
+                    row_iter++;
+                }
                 (*ret)[i] = accum;
-                return ret;
             }
-            assert("Multiplication method not supported");
+            return ret;
          }
 
         void put(int i, int j, double val) {
@@ -198,6 +204,10 @@ class sparse_matrix {
                 }
             }
             return this->default_value;
+        }
+
+        map<int, double>& get_row(int i) {
+            return this->data[i];
         }
 
         my_matrix get_data() const{
@@ -230,13 +240,21 @@ class sparse_matrix {
         */
 };
 
-
 std::ostream& operator<<(std::ostream& os, sparse_matrix const& mat) {
     for(auto& row: mat.get_data()) {
         for (auto& col: row.second) {
             os << "(" << row.first + 1 << ", " << col.first + 1<< ") -> " << col.second << endl;
         }
     }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, vec const& v) {
+    os << "[ ";
+    for(auto& val: v) {
+        os << val <<", ";
+    }
+    os << "]" << endl;
     return os;
 }
 
