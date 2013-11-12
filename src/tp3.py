@@ -174,8 +174,7 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
 
 def solve_gammas(Y, y_k):
     q, r = qr(Y)
-    # from ipdb import set_trace; set_trace()
-    ret = solve(r, q.T * matrix(y_k).T).T
+    ret = solve(r, -q.T * matrix(y_k).T).T
     return ret.tolist()[0]
     return qr_two_iterations(Y, y_k).T.tolist()[0]
 
@@ -229,7 +228,7 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
         w = norm(x_k, 1) - norm(y, 1)
         x_k = y + w * prob_teleport
 
-        if k == 5:
+        if k % quad_freq == 5:
             print "Performing quad extrapolation..."
             x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
 
@@ -295,9 +294,9 @@ if __name__ == '__main__':
     # dense = web.todense()
     # P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
 
-    print "Computing PageRank with regular Power Method..."
-    res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
-    print 'result:\n', res
+    # print "Computing PageRank with regular Power Method..."
+    # res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
+    # print 'result:\n', res
 
     print
     print "Computing PageRank with regular Power Quad..."
