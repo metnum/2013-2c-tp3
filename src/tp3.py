@@ -264,10 +264,10 @@ if __name__ == '__main__':
 
     print "Computing PageRank with regular Power Method..."
     res = pagerank_power_kamvar(web, v(web.shape[0]), 'rel', 0.0001)
-    print res / norm(res, 2)
-    print "Computing PageRank with regular Power Quad..."
-    res = power_quad(web, v(web.shape[0]), 'rel', 0.0001,  6)
-    print res / norm(res, 2)
+    print res / norm(res, 1)
+    # print "Computing PageRank with regular Power Quad..."
+    # res = power_quad(web, v(web.shape[0]), 'rel', 0.0001,  6)
+    # print res / norm(res, 2)
 
     # Uncomment to test result
-    print P2.T.dot(res) / norm(res, 2)
+    # print P2.T.dot(res) / norm(res, 2)
