@@ -247,14 +247,10 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
 
 # Just two iterations of it
 def qr_two_iterations(A, b):
-    # Do not touch the param you've received!
-    R = A.copy()
-    c = b.copy()
-
-    m, n = R.shape
+    m, n = A.shape
 
     # First iteration
-    x = R[:, 0]
+    x = A[:, 0]
 
     v = zeros((m, 1))
     v[0] = 1.0
@@ -265,11 +261,11 @@ def qr_two_iterations(A, b):
 
     v = v / norm(v, 2)
 
-    R = R - (2 * v * (v.T * R))
-    c = c - (2 * v * (v.T * c))
+    A = A - (2 * v * (v.T * A))
+    b = b - (2 * v * (v.T * b))
 
     # Second iteration
-    x = R[1:m, 1:n][:, 0]
+    x = A[1:m, 1:n][:, 0]
 
     v = zeros((m - 1, 1))
     v[0] = 1.0
@@ -280,10 +276,10 @@ def qr_two_iterations(A, b):
 
     v = v / norm(v, 2)
 
-    R[1:m, 1:n] = R[1:m, 1:n] - (2 * v * (v.T * R[1:m, 1:n]))
-    c[1:m] = c[1:m] - (2 * v * (v.T * c[1:m]))
+    A[1:m, 1:n] = A[1:m, 1:n] - (2 * v * (v.T * A[1:m, 1:n]))
+    b[1:m] = b[1:m] - (2 * v * (v.T * b[1:m]))
 
-    return solve(R[0:2, 0:2], -c[0:2])
+    return solve(A[0:2, 0:2], -b[0:2])
 
 if __name__ == '__main__':
     filename = sys.argv[1]
@@ -297,9 +293,9 @@ if __name__ == '__main__':
     # dense = web.todense()
     # P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
 
-    print "Computing PageRank with regular Power Method..."
-    res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
-    print 'result:\n', res
+    # print "Computing PageRank with regular Power Method..."
+    # res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
+    # print 'result:\n', res
 
     print
     print "Computing PageRank with regular Power Quad..."
