@@ -294,9 +294,9 @@ if __name__ == '__main__':
     # dense = web.todense()
     # P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
 
-    # print "Computing PageRank with regular Power Method..."
-    # res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
-    # print 'result:\n', res
+    print "Computing PageRank with regular Power Method..."
+    res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
+    print 'result:\n', res
 
     print
     print "Computing PageRank with regular Power Quad..."
