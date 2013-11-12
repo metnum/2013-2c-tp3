@@ -179,7 +179,7 @@ vec* build_uniform(int size) {
 }
 
 // P is assumed already transposed
-vec& power_quad(sparse_matrix& P_t, vec& x, double epsilon) { //, int quad_frequency, int quad_modulo) {
+vec power_quad(sparse_matrix& P_t, vec& x, double epsilon) { //, int quad_frequency, int quad_modulo) {
     auto k = 0;
     auto& x_3 = x;
     auto& x_2 = x;
@@ -233,6 +233,7 @@ sparse_matrix* load_matrix(string filename) {
     file >> n;
     file >> links;
 
+    cout << "Loading data..." << endl;
     auto matrix = new sparse_matrix(n, n);
 
     int i, j;
@@ -240,7 +241,9 @@ sparse_matrix* load_matrix(string filename) {
     for (auto k = 0; k < links; k++) {
         file >> i;
         file >> j;
-        matrix->put(i, j, 1);
+
+        // Matrix is build with transposed indices
+        matrix->put(j, i, 1);
     }
 
     return matrix;
@@ -254,5 +257,9 @@ int main(int argc, char ** argv) {
 
     string filename = argv[1];
     auto matrix = load_matrix(filename);
+    vec* initial = build_uniform(matrix->n);
+    auto solution = power_quad(*matrix, *initial, 0.0001);
+
+    cout << solution[0] << ", " << solution[1] << ", " << solution[2] << "...." << solution[solution.size() - 2] << ", " << solution[solution.size() - 1] << endl;
     return 0;
 }

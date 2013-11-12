@@ -181,7 +181,7 @@ class sparse_matrix {
          }
 
         void put(int i, int j, double val) {
-            assert(!this->by_row);
+            assert(this->by_row);
             this->data[i][j] = val;
         }
 
@@ -197,6 +197,21 @@ class sparse_matrix {
         }
 
         sparse_matrix& get_column(int i);
+
+        /*
+        matrix* transponse(bool in_place=true) {
+            assert(in_place);
+
+            int i, j;
+            for(auto& row: this->data) {
+                for (auto& col: row.second) {
+                    i = row.first;
+                    j = col.first;
+                    val = col.second;
+                }
+            }
+
+        } */
 
         /*
         void row_divide(int i, double val);
