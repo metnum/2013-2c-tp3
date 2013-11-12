@@ -1,0 +1,88 @@
+Lindo lindo lindo TP
+
+Abstract
+
+200 palabras
+trabajo realizado + hipotesis + conclusiones
+palabras claves: PageRank, eigenvector calculation, power method, quadratic extrapolation
+
+
+Introducion teorica
+
+breve pagerank con link a page et al, incluye matrix markoviana
+vector de probabilidad como autovector de autovalor 1
+metodo de la potencia, metodo utilizado en el paper original
+extrapolacion cuadratica, propuesta a analizar
+
+(pedido por la catedra)
+mostrar que se puede usar P en vez de P'' para calcular. Ver algo1 de kamvar y la explicacion (mas linda) de bryan y leste, con su mejor definicion
+
+hipotesis
+primer hipotesis: se supone que power_quad anda mejor que el power method
+probar esto no solo en num de iteraciones sino tambien en tiempo CPU real
+
+Desarrollo
+
+ * Detalles de implementacion: Mencionar como se encaro el trabajo, la primera implementacion en python y la version final en C++. En python se uso scipy con matrices esparsas y optimizamos el codigo y todo corre rapido para los datasets mas grandes que encontramos
+ * en C se decidio utilziar STL y map<map<>> para la matriz esparsa, solo se implementaron las operaciones necesarias para correr el agoritmo
+ * dependiendo el algoritmo y x0 no es necesario normalizar al final
+ * probar con un dataset grande -- no pudimos porque quedaron mas grandes los que bajamos (alto chamuyo!!! weeeeeoonnn)
+ * para hacer QR decidimos hacer todos los pasos a mano (sin iteraciones) ya que son solo dos, porque es una matrix de 2x2, cita al paper con resolucion linda Gram-Schmidt (Algorithm 7)
+ * se decidio utilizar como criterio de parada la chingada diferencia de norma1 por la mismas razones que kamvar (citar el paper y hacer mini mini resumen)
+
+Experimentos y resultados
+
+(con valor por orden de importancia 1 es poco, 5 es muy importante)
+
+5. ver como se comparan los algoritmos --> ver diferentes c, aparentemente cuanto mas grande el c (o mas chico como lo quieras ver) mas mejora!!!
+2. ver si se pueden ajustar con algun x0 diferente?
+4. ver cada cuanto hacer la extrapolacion cuadrativa
+3. calcular tiempos de cada iteracion de potencia y del empuje de kamvar a ver si vale la pena
+
+Resultados
+* Correr el dataset mas grande sin extrapolacion cuadratica, con una sola EQ al principio, cada 10, cada 5 y lo minimo posible (no se si es 3 o 4) y analizar resultados. Hacer esto para tres c diferentes, .90 .95 .99 
+* notar los saltos (spikes) que al kamvar se le presentaban con el aitken y con el epsilon extrapolation, pero no con el EQ pero a nosotros si..
+* armar hsitograma al estilo figura 6 de kamvar
+* nosotors lo que hicimos que kanvar no hizo (???) fue una analisis de cuando usar kanvar y medir tiempos reales, no solo O grande O(n)
+* % de iteraciones ganadas con EQ y % de tiempo (esto es imporante!!!) ganado con EQ
+
+
+Discusion y Conclusiones
+* tarda mas en cargar todo el dataset que en correr las iteraciones, en una implementacion posta hay que dedicar mas tiempo a esto que a las iteraciones creemos... con lo cual lo que se gana con kamvar parece ser relativamente poco en comparacion con el tiempo que se puede dedicar a optimizar estructuras y tiempo de carga
+* para c mas grande kamvar conviene mas
+* el tiempo extra que tarda EQ se gana al reducir cantidad de iteraciones
+* trabajo futuro, probar datasets mas grandes, mejorar el loading y preset de todas las cosas
+
+Referencia
+
+Definicion Experimentos
+
+Experimento 1 -> diferentes datasets
+Variables: DataSet[Stanford, Berkley+Stanford]
+Fijo: Solo metodo potencia simple
+Que buscamos: ver como se comporta en cada DataSet
+
+cuanto evoluciona el errror en cada dataset en base a las iteraciones
+EJE Y: el delta ese de la norma1
+EJE X: cantidad de iteraciones
+
+Experimento 2 -> cuando usar kamvar
+Variables: Potencia, kamvar 1 vez (a la 5ta iter), kamvar cada 10, kamvar cada 5 y cada 3 (se puede cada 3?), c=.9 .95 .99
+Fijo: DataSet Mas grande
+Que buscamos: Ver como evoluciona cada kamvar con diferentes C
+De aca sacaria un grafico para cada C al igual que hace kamvar, comparando kamvar y potencia (te va??)
+
+Experimento 3 -> comparar tiempos
+Variables: Potencia, kamvar (lo mejor que encontramos)
+Fijo: DataSet Mas grande, c fijo en base a exp2
+Que buscamos: ver cuanto tarda en ejecutar kamvar posta y cuando vale la pena en terminos de % de iteraciones ganadas y de % de tiempo ganado
+Sacaria un grafico de % de tiempo y de % de iteraciones ganadas
+
+BONUS:
+Experimento 3 -> comparar tiempos de loading y de proceso
+Variables: c muy chicos o deltas muy chicos (cuan chicos tienen que ser para que tarde mas en procesar que en cargar los datos)
+Fijo: todo el resto
+Que buscamos: ver cuando empieza a valer la pena en terminos "reales" mejorar el metodo de la potencia y cuanto en cargar todo!
+
+
+
