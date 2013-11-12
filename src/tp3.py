@@ -5,7 +5,7 @@ import itertools
 import sys
 
 from numpy import matrix, sign, transpose, zeros, empty
-from numpy.linalg import norm, solve
+from numpy.linalg import norm, solve, qr
 from scipy.sparse import lil_matrix
 
 # Operaciones
@@ -173,9 +173,10 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
 
 
 def solve_gammas(Y, y_k):
-    # q, r = qr(Y)
-    # ret = solve(r, -q.T * y_k).T
-    # return ret.tolist()[0]
+    q, r = qr(Y)
+    # from ipdb import set_trace; set_trace()
+    ret = solve(r, q.T * matrix(y_k).T).T
+    return ret.tolist()[0]
     return qr_two_iterations(Y, y_k).T.tolist()[0]
 
 
@@ -185,7 +186,8 @@ def quad_extrapolation(x_3, x_2, x_1, x_k):
     y_1 = x_1 - x_3
     y_k = x_k - x_3
 
-    Y = matrix([y_2[:, 0].ravel().tolist()[0], y_1[:, 0].ravel().tolist()[0]]).T
+    # Y2 = matrix([y_2[:, 0].ravel().tolist()[0], y_1[:, 0].ravel().tolist()[0]]).T
+    Y = matrix((y_2, y_1)).T
     gamma_3 = 1
 
     (gamma_1, gamma_2) = solve_gammas(Y, y_k)
@@ -213,7 +215,8 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
     k = 1
     delta = 1000000.0  # At least one iteration will be performed
 
-    vec = v(web.shape[0])
+    # vec = v(web.shape[0])  # we can just multiply by the const 1/n
+    prob_teleport = 1.0 / P.shape[0]
 
     x_3 = x
     x_2 = x
@@ -224,9 +227,9 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
         # Optimized Ax multiplication from algorithm 1
         y = P.dot(REMAIN_FACTOR * x_k)
         w = norm(x_k, 1) - norm(y, 1)
-        x_k = y + w * vec
+        x_k = y + w * prob_teleport
 
-        if k % quad_freq == 5:
+        if k == 5:
             print "Performing quad extrapolation..."
             x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
 
@@ -234,12 +237,12 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
             delta = norm(x_k - x_1)
         else:
             delta = norm(x_k - x_1) / norm(x_1)
-        k += 1
 
         x_3 = x_2
         x_2 = x_1
         x_1 = x_k
-        print "%s: %s" % (k, delta)
+        print "Iter %s, delta=%s..." % (k, delta)
+        k += 1
     return x_k
 
 
@@ -296,10 +299,10 @@ if __name__ == '__main__':
     res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
     print 'result:\n', res
 
-    # print
-    # print "Computing PageRank with regular Power Quad..."
-    # res = power_quad(web, v(pages), 'rel', 0.0001, 6)
-    # print res / norm(res, 1)  # es necesario normalizar?
+    print
+    print "Computing PageRank with regular Power Quad..."
+    res = power_quad(web, v(pages), 'rel', 0.0001, 6)
+    print res / norm(res, 1)  # es necesario normalizar?
 
     # Uncomment to test result
     # print P2.T.dot(res) / norm(res, 2)
