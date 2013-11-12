@@ -1,7 +1,7 @@
 #coding: utf-8
 # Implementación en Python del TP3 para prototipos y demas yerbas
 
-from numpy import matrix, any, zeros
+from numpy import matrix, any, zeros, sign, transpose
 from numpy.linalg import norm, qr, solve
 from scipy.sparse import dok_matrix, lil_matrix
 import sys
@@ -144,9 +144,10 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
 
 
 def solve_gammas(Y, y_k):
-    q, r = qr(Y)
-    ret = solve(r, -q.T * y_k).T
-    return ret.tolist()[0]
+    # q, r = qr(Y)
+    # ret = solve(r, -q.T * y_k).T
+    # return ret.tolist()[0]
+    return qr_two_iterations(Y, y_k)
 
 def quad_extrapolation(x_3, x_2, x_1, x_k):
     print "Performing interpolation..."
@@ -213,6 +214,41 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
         print "%s: %s" % (k, delta)
     return x_k
 
+# Just two iterations of it
+def qr_two_iterations(A, b):
+    m, n = A.shape
+
+    # First iteration
+    x = A[:, 0]
+
+    v = zeros((m, 1))
+    v[0] = 1.0
+
+    alpha = sign(x[0, 0]) * norm(x, 2)
+
+    v = x - (alpha * v)
+
+    v = v / norm(v, 2)
+
+    A = A - (2 * v * (transpose(v) * A))
+    b = b - (2 * v * (transpose(v) * b))
+
+    # Second iteration
+    x = A[1:m, 1:n][:, 0]
+
+    v = zeros((m - 1, 1))
+    v[0] = 1.0
+
+    alpha = sign(x[0, 0]) * norm(x, 2)
+
+    v = x - (alpha * v)
+
+    v = v / norm(v, 2)
+
+    A[1:m, 1:n] = A[1:m, 1:n] - (2 * v * (transpose(v) * A[1:m, 1:n]))
+    b[1:m]      = b[1:m] - (2 * v * (transpose(v) * b[1:m]))
+
+    return solve(A[0:2, 0:2], b[0:2])
 
 if __name__ == '__main__':
     filename = sys.argv[1]
