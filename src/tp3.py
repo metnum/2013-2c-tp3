@@ -1,10 +1,12 @@
 #coding: utf-8
 # Implementación en Python del TP3 para prototipos y demas yerbas
 
-from numpy import matrix, any, zeros, sign, transpose
-from numpy.linalg import norm, qr, solve
-from scipy.sparse import dok_matrix, lil_matrix
+import itertools
 import sys
+
+from numpy import matrix, sign, transpose, zeros, empty
+from numpy.linalg import norm, solve
+from scipy.sparse import lil_matrix
 
 # Operaciones
 # load_file(string filename)
@@ -44,46 +46,73 @@ TELEPORTATION_FACTOR = 1 - REMAIN_FACTOR
 
 
 def load_data(raw_data):
+    """
+    Carga una matrix con la estructura de una web dada
+
+    El formato de archivo es:
+
+        <n cantidad de paginas>
+        <m cantidad de links>
+        <l0 from> <l0 to>  link de la pagina l0.from a l0.to
+        ...
+        <lm from> <lm to>  link de la pagina lm.from a lm.to
+
+    Devuelve una matriz esparsa donde la columna i indica la probabilidad de
+    que un surfer en la pagina i vaya a cada pagina de la columna.
+
+    M[i, j] = probabilidad de estando en la pagina j ir a la pagina i.
+
+    Notar que estamos creando la matriz A de Kamvar2003 o sea, es transpuesta.
+    """
     pages = int(raw_data.readline())
     links = int(raw_data.readline())
 
+    print 'Armando la matriz esparsa...'
     #graph = zeros((pages, pages))
     graph = lil_matrix((pages, pages), dtype='d')
 
-    row_outdegrees = [0] * pages
+    row_outdegrees = zeros(pages)
     count = 0
-    for link in raw_data:
-        src, dest = [int(s) for s in link.split()]
-        graph[src - 1, dest - 1] = 1
-        row_outdegrees[src - 1] += 1
+    for i in range(links):
+        # leo cada linea del archivo
+        # corto en el espacio entre numeros
+        # casteo a int
+        # empiezo por 0 en vez de por 1
+        src, dest = [int(s) - 1 for s in raw_data.readline().split()]
+        graph[dest, src] = 1
+        row_outdegrees[src] += 1
+
+        # helper para ver por donde voy
         count += 1
-
         if count % 10000 == 0:
-            print "%s edges loaded..." % count
-
+            print "%s of %s links loaded..." % (count, links)
 
     print "Normalizing out edges..."
-    for rownum in range(graph.shape[0]):
-        if rownum % 10000 == 0:
-            print "%s pages normalized..." % rownum
-        if row_outdegrees[rownum] != 0:
-            for col in graph.rows[rownum]:
-                graph[rownum, col] = 1.0/row_outdegrees[rownum]
-        #else:
-        #    graph[rownum, :] = [1.0/pages] * pages
+    # get the used rows and cols
+    rows, cols = graph.nonzero()
+    count = 0
+    for i, j in itertools.izip(rows, cols):
+        graph[i, j] = 1.0 / row_outdegrees[j]
+        # this can be optimized to only perform the div once per row
+
+        # helper para ver por donde voy
+        count += 1
+        if count % 10000 == 0:
+            print "%s of %s links normalized..." % (count, links)
 
     print "Matrix loaded. converting to CSR..."
+    # we convert it to CSR for faster arithmetic
     graph = graph.tocsr()
 
-    return graph, row_outdegrees
+    return graph, pages, links, row_outdegrees
 
 
 #def D(web):
 #    return matrix([[1 - float(any(row)) for row in web]]).T
 
-def v(rows):
-    n = rows
-    v = matrix([[1.0/ n]] * n)
+def v(n):
+    v = empty(n)
+    v.fill(1.0 / n)
     return v
 
 
@@ -122,19 +151,19 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
     delta = 1000000.0  # At least one iteration will be performed
 
     n = len(x)
-    v = matrix([ 1.0/n for i in range(n) ]).T
-    P_t = P.T
+    # v = matrix([1.0 / n] * n).T  # we can just multiply by the const 1/n
+    prob_teleport = 1.0 / n
 
     while delta >= epsilon and k < MAX_ITERS:
         # Optimized Ax multiplication from algorithm 1
-        y = P_t.dot(REMAIN_FACTOR * x)
+        y = P.dot(REMAIN_FACTOR * x)
         w = norm(x, 1) - norm(y, 1)
-        x_k = y + w * v
+        x_k = y + w * prob_teleport
 
         if criteria == 'abs':
             delta = norm(x_k - x)
         else:
-            delta = norm(x_k - x)/ norm(x)
+            delta = norm(x_k - x) / norm(x)
 
         print "Iter %s, delta=%s..." % (k, delta)
         k += 1
@@ -149,18 +178,19 @@ def solve_gammas(Y, y_k):
     # return ret.tolist()[0]
     return qr_two_iterations(Y, y_k).T.tolist()[0]
 
+
 def quad_extrapolation(x_3, x_2, x_1, x_k):
     print "Performing interpolation..."
     y_2 = x_2 - x_3
     y_1 = x_1 - x_3
     y_k = x_k - x_3
 
-    Y = matrix([y_2[:,0].ravel().tolist()[0], y_1[:,0].ravel().tolist()[0]]).T
+    Y = matrix([y_2[:, 0].ravel().tolist()[0], y_1[:, 0].ravel().tolist()[0]]).T
     gamma_3 = 1
 
     (gamma_1, gamma_2) = solve_gammas(Y, y_k)
 
-    gamma_0 = -(gamma_1 + gamma_2 + gamma_3)
+    # gamma_0 = -(gamma_1 + gamma_2 + gamma_3)
     beta_0 = gamma_1 + gamma_2 + gamma_3
     beta_1 = gamma_2 + gamma_3
     beta_2 = gamma_3
@@ -190,11 +220,9 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
     x_1 = x
     x_k = x
 
-    P_t = P.T
-
     while delta >= epsilon and k < MAX_ITERS:
         # Optimized Ax multiplication from algorithm 1
-        y = P_t.dot(REMAIN_FACTOR * x_k)
+        y = P.dot(REMAIN_FACTOR * x_k)
         w = norm(x_k, 1) - norm(y, 1)
         x_k = y + w * vec
 
@@ -205,7 +233,7 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
         if criteria == 'abs':
             delta = norm(x_k - x_1)
         else:
-            delta = norm(x_k - x_1)/ norm(x_1)
+            delta = norm(x_k - x_1) / norm(x_1)
         k += 1
 
         x_3 = x_2
@@ -213,6 +241,7 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
         x_1 = x_k
         print "%s: %s" % (k, delta)
     return x_k
+
 
 # Just two iterations of it
 def qr_two_iterations(A, b):
@@ -246,7 +275,8 @@ def qr_two_iterations(A, b):
     v = v / norm(v, 2)
 
     A[1:m, 1:n] = A[1:m, 1:n] - (2 * v * (transpose(v) * A[1:m, 1:n]))
-    b[1:m]      = b[1:m] - (2 * v * (transpose(v) * b[1:m]))
+
+    b[1:m] = b[1:m] - (2 * v * (transpose(v) * b[1:m]))
 
     return solve(A[0:2, 0:2], -b[0:2])
 
@@ -255,19 +285,21 @@ if __name__ == '__main__':
     raw_data = open(filename, 'r')
 
     print "Loading data..."
-    web, out_degrees = load_data(raw_data)
+    web, pages, links, out_degrees = load_data(raw_data)
 
     #from ipdb import set_trace; set_trace()
     # Create P''
-    dense = web.todense()
-    P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
+    # dense = web.todense()
+    # P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
 
     print "Computing PageRank with regular Power Method..."
-    res = pagerank_power_kamvar(web, v(web.shape[0]), 'rel', 0.0001)
-    print res / norm(res, 1)
+    res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
+    print 'result:\n', res
+
+    # print
     # print "Computing PageRank with regular Power Quad..."
-    # res = power_quad(web, v(web.shape[0]), 'rel', 0.0001,  6)
-    # print res / norm(res, 2)
+    # res = power_quad(web, v(pages), 'rel', 0.0001, 6)
+    # print res / norm(res, 1)  # es necesario normalizar?
 
     # Uncomment to test result
     # print P2.T.dot(res) / norm(res, 2)
