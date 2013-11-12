@@ -4,7 +4,7 @@
 import itertools
 import sys
 
-from numpy import matrix, sign, transpose, zeros, empty
+from numpy import matrix, sign, zeros, empty
 from numpy.linalg import norm, solve, qr
 from scipy.sparse import lil_matrix
 
@@ -173,10 +173,10 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
 
 
 def solve_gammas(Y, y_k):
-    q, r = qr(Y)
-    ret = solve(r, -q.T * matrix(y_k).T).T
-    return ret.tolist()[0]
-    return qr_two_iterations(Y, y_k).T.tolist()[0]
+    # q, r = qr(Y)
+    # ret = solve(r, -q.T * matrix(y_k).T).T
+    # return ret.tolist()[0]
+    return qr_two_iterations(Y, matrix(y_k).T).T.tolist()[0]
 
 
 def quad_extrapolation(x_3, x_2, x_1, x_k):
@@ -247,10 +247,14 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
 
 # Just two iterations of it
 def qr_two_iterations(A, b):
-    m, n = A.shape
+    # Do not touch the param you've received!
+    R = A.copy()
+    c = b.copy()
+
+    m, n = R.shape
 
     # First iteration
-    x = A[:, 0]
+    x = R[:, 0]
 
     v = zeros((m, 1))
     v[0] = 1.0
@@ -261,11 +265,11 @@ def qr_two_iterations(A, b):
 
     v = v / norm(v, 2)
 
-    A = A - (2 * v * (transpose(v) * A))
-    b = b - (2 * v * (transpose(v) * b))
+    R = R - (2 * v * (v.T * R))
+    c = c - (2 * v * (v.T * c))
 
     # Second iteration
-    x = A[1:m, 1:n][:, 0]
+    x = R[1:m, 1:n][:, 0]
 
     v = zeros((m - 1, 1))
     v[0] = 1.0
@@ -276,11 +280,10 @@ def qr_two_iterations(A, b):
 
     v = v / norm(v, 2)
 
-    A[1:m, 1:n] = A[1:m, 1:n] - (2 * v * (transpose(v) * A[1:m, 1:n]))
+    R[1:m, 1:n] = R[1:m, 1:n] - (2 * v * (v.T * R[1:m, 1:n]))
+    c[1:m] = c[1:m] - (2 * v * (v.T * c[1:m]))
 
-    b[1:m] = b[1:m] - (2 * v * (transpose(v) * b[1:m]))
-
-    return solve(A[0:2, 0:2], -b[0:2])
+    return solve(R[0:2, 0:2], -c[0:2])
 
 if __name__ == '__main__':
     filename = sys.argv[1]
