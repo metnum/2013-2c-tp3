@@ -243,7 +243,7 @@ class sparse_matrix {
 std::ostream& operator<<(std::ostream& os, sparse_matrix const& mat) {
     for(auto& row: mat.get_data()) {
         for (auto& col: row.second) {
-            os << "(" << row.first + 1 << ", " << col.first + 1<< ") -> " << col.second << endl;
+            os << "(" << row.first + 1 << ", " << col.first + 1 << ") -> " << col.second << endl;
         }
     }
     return os;

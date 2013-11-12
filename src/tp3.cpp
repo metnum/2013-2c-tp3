@@ -194,14 +194,15 @@ vec power_quad(sparse_matrix& P_t, double epsilon) { //, int quad_frequency, int
     while(delta >= epsilon && k < MAX_ITERS) {
         cout << "Multiplicando P_t por x_k por const" << endl;
 
-        unique_ptr<vec> y (vec_mul(REMAIN_FACTOR, *(P_t.mult(*x_k))));
+        unique_ptr<vec> mult (P_t.mult(*x_k));
+        unique_ptr<vec> y (vec_mul(REMAIN_FACTOR, *mult));
 
         double w = norm(*x_k, 1) - norm(*y, 1);
         unique_ptr<vec> w_v (vec_mul(w, *v));
         unique_ptr<vec> res (new vec(*y + *w_v));
         x_k = std::move(res);
-        cout << "Res: " << *x_k;
-        cout << "X previo: " << *x_1;
+        //cout << "Res: " << *x_k;
+        //cout << "X previo: " << *x_1;
 
         /*
         if (k % quad_frequency == quad_modulo) {
@@ -222,7 +223,7 @@ vec power_quad(sparse_matrix& P_t, double epsilon) { //, int quad_frequency, int
 
     delete v;
 
-    return *x_k;
+    return (*x_k) / norm(*x_k);
 }
 
 sparse_matrix* load_matrix(string filename) {
@@ -256,10 +257,12 @@ sparse_matrix* load_matrix(string filename) {
     }
 
     for (int i=0; i < colnum_count.size(); i++) {
-        for (auto& pos: matrix->get_data()) {
+        for (auto pos: matrix->get_data()) {
             if (colnum_count[i] != 0) {
-                if (pos.second.find(i) != pos.second.end()) {
-                    pos.second[i] = 1.0/colnum_count[i];
+                auto value_pos = pos.second.find(i);
+                if (value_pos != pos.second.end()) {
+                    value_pos->second = 1.0 / (double)colnum_count[i];
+                    cout << value_pos->second << endl;
                 }
             }
         }
@@ -286,8 +289,9 @@ int main(int argc, char ** argv) {
     auto& matrix = sparse_matrix(
     */
 
-    cout << solution << endl;
+    cout << "Solution: " << solution << endl;
     // cout << solution[0] << ", " << solution[1] << ", " << solution[2] << "...." << solution[solution.size() - 2] << ", " << solution[solution.size() - 1] << endl;
     //free matrix;
+    delete matrix;
     return 0;
 }

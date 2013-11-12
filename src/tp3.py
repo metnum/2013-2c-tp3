@@ -299,6 +299,7 @@ if __name__ == '__main__':
 
     print
     print "Computing PageRank with regular Power Quad..."
+    from ipdb import set_trace; set_trace()
     res = power_quad(web, v(pages), 'rel', 0.0001, 6)
     print res / norm(res, 1)  # es necesario normalizar?
 
