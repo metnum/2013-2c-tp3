@@ -147,7 +147,7 @@ def solve_gammas(Y, y_k):
     # q, r = qr(Y)
     # ret = solve(r, -q.T * y_k).T
     # return ret.tolist()[0]
-    return qr_two_iterations(Y, y_k)
+    return qr_two_iterations(Y, y_k).T.tolist()[0]
 
 def quad_extrapolation(x_3, x_2, x_1, x_k):
     print "Performing interpolation..."
@@ -248,7 +248,7 @@ def qr_two_iterations(A, b):
     A[1:m, 1:n] = A[1:m, 1:n] - (2 * v * (transpose(v) * A[1:m, 1:n]))
     b[1:m]      = b[1:m] - (2 * v * (transpose(v) * b[1:m]))
 
-    return solve(A[0:2, 0:2], b[0:2])
+    return solve(A[0:2, 0:2], -b[0:2])
 
 if __name__ == '__main__':
     filename = sys.argv[1]
