@@ -243,7 +243,7 @@ sparse_matrix* load_matrix(string filename) {
         file >> j;
 
         // Matrix is build with transposed indices
-        matrix->put(j, i, 1);
+        matrix->put(j - 1, i - 1, 1);
     }
 
     return matrix;
@@ -257,9 +257,17 @@ int main(int argc, char ** argv) {
 
     string filename = argv[1];
     auto matrix = load_matrix(filename);
+
+    cout << *matrix << endl;
     vec* initial = build_uniform(matrix->n);
     auto solution = power_quad(*matrix, *initial, 0.0001);
 
+    /* Test sparse mult */
+    /*
+    auto& matrix = sparse_matrix(
+    */
+
     cout << solution[0] << ", " << solution[1] << ", " << solution[2] << "...." << solution[solution.size() - 2] << ", " << solution[solution.size() - 1] << endl;
+    //free matrix;
     return 0;
 }

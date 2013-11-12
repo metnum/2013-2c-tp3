@@ -12,7 +12,12 @@ using namespace std;
 typedef vector<double> vec;
 typedef vector<vec> matrix;
 
-double norm(vec const& v, int n) {
+typedef map<int, double> my_column;
+typedef map<int, my_column> my_matrix;
+typedef my_column::iterator col_iter;
+typedef my_matrix::iterator matrix_iter;
+
+double norm(vec const& v, int n=2) {
     double accum = 0;
     if (n == 1) {
         for(auto& val : v) {
@@ -92,10 +97,6 @@ vec operator +(vec const& v1, vec const& v2) {
 
 class sparse_matrix {
     private:
-        typedef map<int, double> my_column;
-        typedef map<int, my_column> my_matrix;
-        typedef my_column::iterator col_iter;
-        typedef my_matrix::iterator matrix_iter;
         my_matrix data;
 
     public:
@@ -139,42 +140,41 @@ class sparse_matrix {
 
             vec * ret = new vec(this->n);
 
-            if (this->default_value != 0 && this->by_row) {
-                // No entiendo que hace ninguno de estos dos chequeos, porque
-                // chequeas que el default_value sea diferente de 0? y lo del
-                // by_row ni idea :P
-                auto row_iter = this->data.begin();
+            assert(this->by_row); // No implementado de otra forma
+            // No entiendo que hace ninguno de estos dos chequeos, porque
+            // chequeas que el default_value sea diferente de 0? y lo del
+            // by_row ni idea :P
+            auto row_iter = this->data.begin();
 
-                for (int i = 0; i < this->n; i++) {
-                    // iterador por las filas de la matriz
+            for (int i = 0; i < this->n; i++) {
+                // iterador por las filas de la matriz
+                double accum = 0;
 
-                    double accum = 0;
+                if (row_iter->first != i && this->default_value != 0) {
+                    // La "siguiente" fila llena no es la actual
+                    // Multiplico por el default
+                    for(int j = 0; j < this->m; j++) {
+                        accum += v[j] * this->default_value;
+                    }
 
-                    if (row_iter->first != i) {
-                        // La "siguiente" fila llena no es la actual
-                        // Multiplico por el default
-                        for(int j = 0; j < this->m; j++) {
+                } else {
+                    // Esta fila esta llena
+                    auto col_iter = row_iter->second.begin();
+
+                    for(int j = 0; j < this->m; j++) {
+                        // Itero por las columnas de la actual fila
+                        if (col_iter->first == j) {
+                            // La pos j esta llena
+                            accum += v[j] * col_iter->second;
+                            next(col_iter);
+                        } else {
                             accum += v[j] * this->default_value;
                         }
-
-                    } else {
-                        // Esta fila esta llena
-                        auto col_iter = row_iter->second.begin();
-
-                        for(int j = 0; j < this->m; j++) {
-                            // Itero por las columnas de la actual fila
-                            if (col_iter->first == j) {
-                                // La pos j esta llena
-                                accum += v[j] * col_iter->second;
-                                next(col_iter);
-                            } else {
-                                accum += v[j] * this->default_value;
-                            }
-                        }
-                        next(row_iter);
                     }
-                    (*ret)[i] = accum;
+                    next(row_iter);
                 }
+
+                (*ret)[i] = accum;
                 return ret;
             }
             assert("Multiplication method not supported");
@@ -182,10 +182,14 @@ class sparse_matrix {
 
         void put(int i, int j, double val) {
             assert(this->by_row);
+            assert(i < n);
+            assert(j < m);
             this->data[i][j] = val;
         }
 
         double get(int i, int j, double if_empty) {
+            assert(i < n);
+            assert(j < m);
             matrix_iter row = this->data.find(i);
             if (row != this->data.end()) {
                 col_iter col = row->second.find(j);
@@ -196,7 +200,9 @@ class sparse_matrix {
             return this->default_value;
         }
 
-        sparse_matrix& get_column(int i);
+        my_matrix get_data() const{
+            return this->data;
+        }
 
         /*
         matrix* transponse(bool in_place=true) {
@@ -223,4 +229,15 @@ class sparse_matrix {
         void col_sub(int j, sparse_matrix& col);
         */
 };
+
+
+std::ostream& operator<<(std::ostream& os, sparse_matrix const& mat) {
+    for(auto& row: mat.get_data()) {
+        for (auto& col: row.second) {
+            os << "(" << row.first + 1 << ", " << col.first + 1<< ") -> " << col.second << endl;
+        }
+    }
+    return os;
+}
+
 
