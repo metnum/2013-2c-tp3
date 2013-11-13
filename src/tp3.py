@@ -228,9 +228,9 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
         w = norm(x_k, 1) - norm(y, 1)
         x_k = y + w * prob_teleport
 
-        if k % quad_freq == 5:
-            print "Performing quad extrapolation..."
-            x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
+        #if k % quad_freq == 0:
+        #    print "Performing quad extrapolation..."
+        #    x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
 
         if criteria == 'abs':
             delta = norm(x_k - x_1)
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     print
     print "Computing PageRank with regular Power Quad..."
     from ipdb import set_trace; set_trace()
-    res = power_quad(web, v(pages), 'rel', 0.0001, 6)
+    res = power_quad(web, v(pages), 'rel', 0.0001, 8)
     print res / norm(res, 1)  # es necesario normalizar?
 
     # Uncomment to test result

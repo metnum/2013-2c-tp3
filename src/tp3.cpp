@@ -4,12 +4,8 @@
 #include <string>
 #include <cmath>
 #include <memory>
-#include <stdio.h>
-#include <stdlib.h>
 #include <vector>
-#include <stdexcept>
 #include <string>
-#include <string.h>
 #include <functional>
 
 #include "sparse_matrix.h"
@@ -19,59 +15,24 @@ using namespace std;
 const int MAX_ITERS = 100;
 const double REMAIN_FACTOR = 0.85;
 
-
-/*
-matrix* identity(int n) {
-    matrix* m = new matrix(n, vec(n, 0));
-    for (int i = 0; i < n; i++) {
-        (*m)[i][i] = 1;
-    }
-
-    return m;
-}
-*/
-
-
-// Canonical vector with first position set to 1.
-/*
-vec* canonical(int n) {
-    vec* v = new vec(n, 0);
-    (*v)[0] = 1;
-    return v;
-}
-*/
-
-/*
- * Create a new matrix from v * v'
- */
-
-/*
-matrix* mat_vec_transposed(vec& v) {
-    auto mat = new matrix(v.size(), vec(v.size(), 0));
-
-    for (int i=0; i < v.size(); i++) {
-        for (int j=0; j < v.size(); j++) {
-            (*mat)[i][j] = v[i] * v[j];
-        }
-    }
-    return mat;
-}
-*/
-
 /*
  * Compute Q transposed and R
+ * Solve least squares problem
  */
-std::pair<matrix*, matrix*>* qr_two_iterations(matrix& Y, vec& b) {
+std::pair<double, double> qr_two_iterations(matrix& Y, vec& b) {
     int m = Y.size();
     int n = Y[0].size();
 
     // First iteration
-    auto x = make_shared<vec> (vec(n));
+    auto x = make_shared<vec> (vec(m));
     // Get first column
-    transform(begin(Y), end(Y), x->begin(), [](vec v1) { return v1[0]; });
+    // transform(begin(Y), end(Y), x->begin(), [](vec v1) { return v1[0]; });
+    for (int i=0; i < Y.size(); i++) {
+        (*x)[i] = Y[i][0];
+    }
 
     // V is the first canonical vector
-    auto v = make_unique<vec> (vec(n, 0));
+    auto v = make_unique<vec> (vec(m, 0));
     (*v)[0] = 1;
 
     auto alpha = ((*x)[0] / abs((*x)[0])) * norm((*x), 2);
@@ -80,11 +41,16 @@ std::pair<matrix*, matrix*>* qr_two_iterations(matrix& Y, vec& b) {
 
     *v = *v / norm(*v, 2);
 
-    unique_ptr<matrix> A (new matrix());
+    unique_ptr<matrix> A (new matrix(Y.size()));
     unique_ptr<vec> r (new vec(b));
 
     // Load with data from A
-    transform(begin(Y), end(Y), A->begin(), [](vec v1) { return v1; });
+    //transform(begin(Y), end(Y), A->begin(), [](vec v1) { return v1; });
+    for (int i=0; i < Y.size(); i++) {
+        (*A)[i] = Y[i];
+    }
+
+    cout << "A matrix loaded" << endl;
 
     unique_ptr<vec> vt_A (left_trans_multiply(*v, *A));
     double vt_B = left_trans_multiply(*v, *r);
@@ -92,16 +58,25 @@ std::pair<matrix*, matrix*>* qr_two_iterations(matrix& Y, vec& b) {
     unique_ptr<matrix> vvtA (mult_transposed(*v, *vt_A));
     vec vvtB = vt_B * (*v);
 
+    cout << "Second mult round passed" << endl;
+    cout << "A " << A->size() << "x" << (*A)[0].size() << endl;
+    cout << "vvtA  " << vvtA->size() << "x" << (*vvtA)[0].size() << endl;
     *A = *A - (2 * (*vvtA));
 
+    cout << "A subtracted" << endl;
     auto vvtBd = vvtB * 2;
     vec r_res = (*r) - vvtBd;
 
+
     // Second iteration
-    auto x_2 = make_shared<vec> (vec(n-1));
+    auto x_2 = make_shared<vec> (vec(m-1));
     auto Y_it = Y.begin();
     Y_it = next(Y_it);
-    transform(next(Y_it), end(Y), x_2->begin(), [](vec v1) { return v1[1]; });
+
+    // transform(Y_it, end(Y), x_2->begin(), [](vec v1) { return v1[1]; });
+    for (int i=0; i < Y.size(); i++) {
+        (*x_2)[0] = Y[i][0];
+    }
 
     auto v_2 = make_unique<vec> (vec(n - 1, 0));
     (*v_2)[0] = 1;
@@ -124,73 +99,19 @@ std::pair<matrix*, matrix*>* qr_two_iterations(matrix& Y, vec& b) {
     vec vvtB2 = vt_B2 * (*v_2);
 
     *A_2 = *A - (2 * (*vvtA2));
-    auto vvtB2d = vvtB * 2;
-    vec r_2 = (*r_2) - vvtB2d;
+    auto vvtB2d = vvtB2 * 2;
+    vec r_2 = r_res_sub - vvtB2d;
     // Insert slice into original matrix
 
-
-    return new std::pair<matrix*, matrix*> (new matrix(), new matrix());
-
-    /*
-    auto alpha = norm(x, 2) * (x[0] / abs(x[0]));
-    auto alpha_canonical = (*canonical(n)) * alpha;
-    auto u = x - alpha_canonical;
-    auto v = u / norm(u, 2);
-
-    auto Q_1 = (*identity(n)) - (*mat_vec_transposed(v)*) * 2.0;
-    auto A = Q_1 * A;
-
-    // Second iteration
-    auto x = vec(n, 0);
-
-    // Advance to the second element
-    auto it = begin(x );
-    it.next();
-    auto Y_it = begin(Y).next();
-    transform(Y_it, end(Y), it, [](auto v) { return v[1]; });
-
-    alpha = norm(x , 2) * (x [1] / abs(x [1]));
-    auto u = x - canonical(n1) * alpha;
-    auto v = u / norm(u, 2);
-    auto Q_2 = *identity(n) - mat_vec_transposed(v) * 2;
-
-    // Build R and Q_t
-    r = Q2 * A;
-    q = Q_2 * Q_1;
-    */
-}
-
-/*
-vec& backwards_substitution(matrix& A, vec& b) {
-    vec ret = {0, 0};
-    return ret;
-}
-*/
-
-/*
-const matrix& transpose_inplace(matrix& m) {
-    for(int i = 0; i < m.size(); i++) {
-        for(int j = 0; j < m[i].size(); j++) {
-            auto temp;
-                temp = m[i][j];
-                m[i][j] = m[j][i];
-                m[j][i] = temp;
-        }
+    for(int i=1; i < r->size(); i++) {
+        (*r)[i] = r_2[i-1];
     }
-    return m;
-}
-*/
 
-/*
-void solve_gammas(matrix& Y, vec y_k, double& gamma1, double& gamma2) {
-    matrix q, r;
-    qtr_r(Y, q, r);
-    auto right_size = transpose_inplace(q) * -1 * y_k;
-    auto& solution = backwards_substitution(r, right_size);
-    gamma1 = solution[0];
-    gamma2 = solution[1];
+    insert_block(*A, *A_2, 1, 1);
+
+    auto inverted_r = (*r) * -1;
+    return solve_square_eq(*A, inverted_r);
 }
-*/
 
 /* Build Y as a combination of two column vectors */
 matrix* build_Y(vec const& y_1, vec const& y_2) {
@@ -204,31 +125,32 @@ matrix* build_Y(vec const& y_1, vec const& y_2) {
     return Y;
 }
 
-/*
 unique_ptr<vec> quad_extrapolation(vec const& x_3,
         vec const& x_2, vec const& x_1, vec const& x_k){
-    cout << "Performing extrapolation.." << endl;
+    vec y_2 = x_2 - x_3;
+    vec y_1 = x_1 - x_3;
+    vec y_k = x_k - x_3;
 
-    auto& y_2 = x_2 - x_3;
-    auto& y_1 = x_1 - x_3;
-    auto& y_k = x_k - x_3;
-
-    Y = build_Y(y_2, y_1);
+    unique_ptr<matrix> Y (build_Y(y_2, y_1));
 
     auto gamma_3 = 1.0;
-    double& gamma_1 = 0.0;
-    double& gamma_2 = 0.0;
+    double gamma_1 = 0.0;
+    double gamma_2 = 0.0;
 
-    solve_gammas(Y, y_k, gamma_1, gamma_2);
+    auto gammas = qr_two_iterations(*Y, y_k);
+    auto gamma1 = gammas.first, gamma2 = gammas.second;
 
     auto gamma_0 = -(gamma_1 + gamma_2 + gamma_3);
     auto beta_0 = gamma_1 + gamma_2 + gamma_3;
     auto beta_1 = gamma_2 + gamma_3;
     auto beta_2 = gamma_3;
-    unique_ptr<vec> x ((beta_0 * x_2 + beta_1 * x_1 + beta_2) * x_k);
+
+    auto b0 = beta_0 * x_2;
+    auto b1 = beta_1 * x_1;
+    auto b2 = beta_2 * x_k;
+    unique_ptr<vec> x (new vec(b0 + b1 + b2));
     return x;
 }
-*/
 
 vec* build_uniform(int size) {
     auto value = 1.0 / size;
@@ -236,8 +158,8 @@ vec* build_uniform(int size) {
 }
 
 // P is assumed already transposed
-vec power_quad(sparse_matrix& P_t, double epsilon) { //, int quad_frequency, int quad_modulo) {
-    auto k = 0;
+vec power_quad(sparse_matrix& P_t, double epsilon, int quad_frequency=5, int quad_modulo=4) { //, int quad_frequency, int quad_modulo) {
+    auto k = 1;
     shared_ptr<vec> x (build_uniform(P_t.m));
     shared_ptr<vec> x_3 = x;
     shared_ptr<vec> x_2 = x;
@@ -260,7 +182,7 @@ vec power_quad(sparse_matrix& P_t, double epsilon) { //, int quad_frequency, int
 
         /*
         if (k % quad_frequency == quad_modulo) {
-            x_k = quad_extrapolation(x_3, x_2, x_1, x_k);
+            x_k = quad_extrapolation(*x_3, *x_2, *x_1, *x_k);
         }
         */
 

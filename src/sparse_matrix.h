@@ -48,7 +48,7 @@ vec* vec_mul(double c, vec& v) {
     return ret;
 }
 
-vec operator -(vec& v1, vec& v2) {
+vec operator -(vec const& v1, vec const& v2) {
     auto ret = vec(v1.size());
     for (int i=0; i < v1.size(); i++) {
         ret[i] = v1[i] - v2[i];
@@ -68,6 +68,15 @@ matrix operator -(matrix const& m1, matrix const& m2) {
         }
     }
     return result;
+}
+
+vec operator +(vec const& v1, vec const& v2) {
+    vec ret (v1.size());
+
+    for (int i = 0; i < v1.size(); i++) {
+        ret[i] = v1[i] + v2[i];
+        return ret;
+    }
 }
 
 vec operator /(vec& v, double c) {
@@ -116,9 +125,9 @@ matrix operator *(double c, matrix const& m) {
 }
 
 matrix* mult_transposed(vec const& v, vec const& v_t) {
-    auto res = new matrix(v.size(), vec(v.size()));
+    auto res = new matrix(v.size(), vec(v_t.size()));
     for (int i=0; i < v.size(); i++) {
-        for (int j=0; j < v.size(); j++) {
+        for (int j=0; j < v_t.size(); j++) {
             (*res)[i][j] = v[i] * v_t[j];
         }
     }
@@ -170,12 +179,35 @@ matrix operator *(matrix const& a, matrix const& b) {
     return result;
 }
 
-vec operator +(vec const& v1, vec const& v2) {
-    vec ret = vec(v1.size());
-    for (int i = 0; i < v1.size(); i++) {
-        ret[i] = v1[i] + v2[i];
+void insert_block(matrix& A, matrix const& a, int row, int col) {
+    for (int i = 0; i < a.size(); i++) {
+        for (int j = 0; j< a[0].size(); j++) {
+            A[i + row][j + col] = a[i][j];
+        }
     }
-    return ret;
+}
+
+/* Solve system of linear equations
+ * assuming A is 2x2 and b is a column vector or length 2
+ */
+pair<double, double> solve_square_eq(matrix&  A, vec& b) {
+    // One step of Gaussian elimination, two steps of backwards substituion
+    auto a = A[0][0];
+    auto i = A[1][0] / a;
+    A[1][0] = 0;
+    A[1][1] -= A[0][1] * i;
+
+    b[1] -= b[0] * i;
+
+    // System triangulated. Subtituton low
+    b[1] = b[1] / A[1][1];
+    double y2 = b[1];
+
+    // Substitution hi
+    b[0] -= b[1] * (A[1][0] / A[1][1]);
+    double y1 = b[0];
+
+    return make_pair(y1, y2);
 }
 
 
