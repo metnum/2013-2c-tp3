@@ -24,7 +24,7 @@ std::pair<double, double> qr_two_iterations(matrix& Y, vec& b) {
     int n = Y[0].size();
 
     // First iteration
-    auto x = make_shared<vec> (vec(m));
+    auto x = make_unique<vec> (vec(m));
     // Get first column
     // transform(begin(Y), end(Y), x->begin(), [](vec v1) { return v1[0]; });
     for (int i=0; i < Y.size(); i++) {
@@ -35,12 +35,14 @@ std::pair<double, double> qr_two_iterations(matrix& Y, vec& b) {
     auto v = make_unique<vec> (vec(m, 0));
     (*v)[0] = 1;
 
+    cout << "Alpha 1" << endl;
     auto alpha = ((*x)[0] / abs((*x)[0])) * norm((*x), 2);
     auto v_alpha = (*v) * alpha;
     *v = (*x) - v_alpha;
 
     *v = *v / norm(*v, 2);
 
+    cout << "Allocating matrix" << endl;
     unique_ptr<matrix> A (new matrix(Y.size()));
     unique_ptr<vec> r (new vec(b));
 
@@ -50,24 +52,24 @@ std::pair<double, double> qr_two_iterations(matrix& Y, vec& b) {
         (*A)[i] = Y[i];
     }
 
+    cout << "Heavy mults" << endl;
     unique_ptr<vec> vt_A (left_trans_multiply(*v, *A));
     double vt_B = left_trans_multiply(*v, *r);
 
     unique_ptr<matrix> vvtA (mult_transposed(*v, *vt_A));
     vec vvtB = vt_B * (*v);
 
+    cout << "Matrix copy operations" << endl;
     *A = *A - (2 * (*vvtA));
 
     auto vvtBd = vvtB * 2;
     vec r_res = (*r) - vvtBd;
 
-
     // Second iteration
-    auto x_2 = make_shared<vec> (vec(m-1));
+    auto x_2 = make_unique<vec> (vec(m-1));
 
-    // transform(Y_it, end(Y), x_2->begin(), [](vec v1) { return v1[1]; });
-    for (int i=0; i < Y.size() - 1; i++) {
-        (*x_2)[i] = Y[i + 1][1];
+    for (int i=0; i < A->size() - 1; i++) {
+        (*x_2)[i] = (*A)[i + 1][1];
     }
 
     auto v_2 = make_unique<vec> (vec(m - 1, 0));
@@ -96,12 +98,12 @@ std::pair<double, double> qr_two_iterations(matrix& Y, vec& b) {
     // Insert slice into original matrix
 
     for(int i=1; i < r->size(); i++) {
-        (*r)[i] = r_2[i-1];
+        r_res[i] = r_2[i-1];
     }
 
     insert_block(*A, *A_2, 1, 1);
 
-    auto inverted_r = (*r) * -1;
+    auto inverted_r = r_res * -1;
     return solve_square_eq(*A, inverted_r);
 }
 
@@ -126,11 +128,12 @@ unique_ptr<vec> quad_extrapolation(vec const& x_3,
     unique_ptr<matrix> Y (build_Y(y_2, y_1));
 
     auto gamma_3 = 1.0;
-    double gamma_1 = 0.0;
-    double gamma_2 = 0.0;
+    double gamma_1;
+    double gamma_2;
 
     auto gammas = qr_two_iterations(*Y, y_k);
-    auto gamma1 = gammas.first, gamma2 = gammas.second;
+    gamma_1 = gammas.first;
+    gamma_2 = gammas.second;
 
     auto gamma_0 = -(gamma_1 + gamma_2 + gamma_3);
     auto beta_0 = gamma_1 + gamma_2 + gamma_3;
@@ -150,7 +153,7 @@ vec* build_uniform(int size) {
 }
 
 // P is assumed already transposed
-vec power_quad(sparse_matrix& P_t, double epsilon, int quad_frequency=5, int quad_modulo=4) { //, int quad_frequency, int quad_modulo) {
+vec power_quad(sparse_matrix& P_t, double epsilon, int quad_frequency=7, int quad_modulo=4) { //, int quad_frequency, int quad_modulo) {
     auto k = 1;
     shared_ptr<vec> x (build_uniform(P_t.m));
     shared_ptr<vec> x_3 = x;
@@ -172,22 +175,20 @@ vec power_quad(sparse_matrix& P_t, double epsilon, int quad_frequency=5, int qua
         //cout << "Res: " << *x_k;
         //cout << "X previo: " << *x_1;
 
-        /*
         if (k % quad_frequency == quad_modulo) {
             cout << "Performing extrapolation..." << endl;
             x_k = quad_extrapolation(*x_3, *x_2, *x_1, *x_k);
         }
-        */
 
         // TODO: agregar criterior relativo de detencion como el python
         delta = norm(*x_k - *x_1, 2);
-        k++;
 
         x_3 = x_2;
         x_2 = x_1;
         x_1 = x_k;
 
         cout << "Iter " << k << ", delta=" << delta << endl;
+        k++;
     }
 
     delete v;
@@ -245,7 +246,7 @@ int main(int argc, char ** argv) {
 
     // cout << *matrix << endl;
     // vec* initial = build_uniform(matrix->n);
-    auto solution = power_quad(*matrix, 0.00001);
+    auto solution = power_quad(*matrix, 0.000001);
 
     /* Test sparse mult */
     /*

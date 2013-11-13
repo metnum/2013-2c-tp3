@@ -1,5 +1,8 @@
 CC=g++
 CFLAGS=-I.
 
-tp1: tp3.cpp
-	$(CXX) -std=c++11 -g -o bin/tp3 tp3.cpp $(CFLAGS)
+debug: tp3.cpp
+	$(CXX) -std=c++11 -g -o bin/tp3-debug tp3.cpp $(CFLAGS)
+
+tp3: tp3.cpp
+	$(CXX) -std=c++11 -O3 -o bin/tp3 tp3.cpp $(CFLAGS)

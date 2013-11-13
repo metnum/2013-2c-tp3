@@ -56,6 +56,7 @@ vec operator -(vec const& v1, vec const& v2) {
     return ret;
 }
 
+
 matrix operator -(matrix const& m1, matrix const& m2) {
     assert(m1.size() == m2.size());
     assert(m1[0].size() == m2[0].size());
@@ -68,6 +69,19 @@ matrix operator -(matrix const& m1, matrix const& m2) {
         }
     }
     return result;
+}
+
+
+unique_ptr<matrix> sub_inplace(unique_ptr<matrix> m1, matrix const& m2) {
+    assert(m1->size() == m2.size());
+    assert((*m1)[0].size() == m2[0].size());
+
+    for (int i = 0; i < m1->size(); i++) {
+        for (int j = 0; j < (*m1)[0].size(); j++) {
+            (*m1)[i][j] -= m2[i][j];
+        }
+    }
+    return move(m1);
 }
 
 vec operator +(vec const& v1, vec const& v2) {
@@ -179,6 +193,15 @@ matrix operator *(matrix const& a, matrix const& b) {
     return result;
 }
 
+unique_ptr<matrix> mult_inplace(unique_ptr<matrix> m, double d) {
+    for (int i = 0; i < m->size(); i++) {
+        for (int j = 0; j < (*m)[i].size(); j++) {
+            (*m)[i][j] *= d;
+        }
+    }
+    return move(m);
+}
+
 void insert_block(matrix& A, matrix const& a, int row, int col) {
     for (int i = 0; i < a.size(); i++) {
         for (int j = 0; j< a[0].size(); j++) {
@@ -191,21 +214,14 @@ void insert_block(matrix& A, matrix const& a, int row, int col) {
  * assuming A is 2x2 and b is a column vector or length 2
  */
 pair<double, double> solve_square_eq(matrix&  A, vec& b) {
-    // One step of Gaussian elimination, two steps of backwards substituion
-    auto a = A[0][0];
-    auto i = A[1][0] / a;
-    A[1][0] = 0;
-    A[1][1] -= A[0][1] * i;
-
-    b[1] -= b[0] * i;
-
     // System triangulated. Subtituton low
     b[1] = b[1] / A[1][1];
     double y2 = b[1];
+    A[1][1] = 1;
 
     // Substitution hi
-    b[0] -= b[1] * (A[1][0] / A[1][1]);
-    double y1 = b[0];
+    b[0] -= b[1] * (A[0][1] / A[1][1]);
+    double y1 = b[0] / A[0][0];
 
     return make_pair(y1, y2);
 }
@@ -240,15 +256,6 @@ class sparse_matrix {
             /* Default case: row-optimized left matrix, column-optimized right matrix */
             assert(!this->by_row || !m.by_row);
         }
-
-        /*
-        void mult_inplace(double c) {
-            for (auto& row_iter : this->data) {
-                for (auto& col_it : row_iter.second) {
-                    col_it.second = col_it.second * c;
-                }
-            }
-        } */
 
         vec* mult(const vec& v) {
              // Multiplica esta matrix por el vector v y devuelve un puntero a

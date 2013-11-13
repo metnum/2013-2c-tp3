@@ -199,7 +199,7 @@ def quad_extrapolation(x_3, x_2, x_1, x_k):
     return x
 
 
-def power_quad(P, x, criteria, epsilon, quad_freq):
+def power_quad(P, x, criteria, epsilon, quad_freq=7, quad_modulo=4):
     """
     Perform the power method for the PageRank matrix
     using Kamvar's optimization for matrix multiplication
@@ -228,9 +228,9 @@ def power_quad(P, x, criteria, epsilon, quad_freq):
         w = norm(x_k, 1) - norm(y, 1)
         x_k = y + w * prob_teleport
 
-        #if k % quad_freq == 0:
-        #    print "Performing quad extrapolation..."
-        #    x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
+        if k % quad_freq == quad_modulo:
+            print "Performing quad extrapolation..."
+            x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
 
         if criteria == 'abs':
             delta = norm(x_k - x_1)
@@ -288,7 +288,6 @@ if __name__ == '__main__':
     print "Loading data..."
     web, pages, links, out_degrees = load_data(raw_data)
 
-    #from ipdb import set_trace; set_trace()
     # Create P''
     # dense = web.todense()
     # P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
@@ -299,8 +298,7 @@ if __name__ == '__main__':
 
     print
     print "Computing PageRank with regular Power Quad..."
-    from ipdb import set_trace; set_trace()
-    res = power_quad(web, v(pages), 'rel', 0.0001, 8)
+    res = power_quad(web, v(pages), 'abs', 0.000001)
     print res / norm(res, 1)  # es necesario normalizar?
 
     # Uncomment to test result
