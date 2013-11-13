@@ -1,5 +1,6 @@
 #include "assert.h"
 #include <map>
+#include <memory>
 #include <cmath>
 #include <vector>
 #include <iostream>
@@ -16,6 +17,12 @@ typedef map<int, double> my_column;
 typedef map<int, my_column> my_matrix;
 typedef my_column::iterator col_iter;
 typedef my_matrix::iterator matrix_iter;
+
+template<typename T, typename ...Args>
+std::unique_ptr<T> make_unique( Args&& ...args ) {
+  return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
+}
+
 
 double norm(vec const& v, int n=2) {
     double accum = 0.0;
@@ -43,10 +50,24 @@ vec* vec_mul(double c, vec& v) {
 
 vec operator -(vec& v1, vec& v2) {
     auto ret = vec(v1.size());
-    for(int i=0; i < v1.size(); i++) {
+    for (int i=0; i < v1.size(); i++) {
         ret[i] = v1[i] - v2[i];
     }
     return ret;
+}
+
+matrix operator -(matrix const& m1, matrix const& m2) {
+    assert(m1.size() == m2.size());
+    assert(m1[0].size() == m2[0].size());
+
+    matrix result(m1.size(), vec(m1[0].size()));
+
+    for (int i = 0; i < m1.size(); i++) {
+        for (int j = 0; j < m1[0].size(); j++) {
+            result[i][j] = m1[i][j] - m2[i][j];
+        }
+    }
+    return result;
 }
 
 vec operator /(vec& v, double c) {
@@ -55,7 +76,7 @@ vec operator /(vec& v, double c) {
     return copied;
 }
 
-vec operator *(vec const& v1, vec const& v2) {
+vec operator *(vec& v1, vec& v2) {
     auto ret = vec(v1.size());
 
     assert(v1.size() != v2.size());
@@ -75,17 +96,79 @@ vec operator *(vec const& v1, double c) {
     return ret;
 }
 
-/*
+vec operator *(double c, vec const& v) {
+    return v * c;
+}
+
 matrix operator *(matrix const& m, double c) {
-    auto ret = new matrix(m.size(), vec(m[0].size(), 0));
+    matrix ret = matrix(m.size(), vec(m[0].size(), 0));
 
     for (int i = 0; i < m.size(); i++) {
         for (int j = 0; j < m[i].size(); j++) {
-            (*ret)[i][j] += c;
+            ret[i][j] += c;
         }
     }
     return ret;
-} */
+}
+
+matrix operator *(double c, matrix const& m) {
+    return m * c;
+}
+
+matrix* mult_transposed(vec const& v, vec const& v_t) {
+    auto res = new matrix(v.size(), vec(v.size()));
+    for (int i=0; i < v.size(); i++) {
+        for (int j=0; j < v.size(); j++) {
+            (*res)[i][j] = v[i] * v_t[j];
+        }
+    }
+    return res;
+}
+
+matrix* submatrix(matrix const& A) {
+    matrix* result = new matrix(A.size() - 1, vec(A[0].size() - 1, 0));
+
+    for (int i = 1; i < A.size(); i++) {
+        for (int j = 1; j < A[0].size(); j++) {
+            (*result)[i][j] = A[i][j];
+        }
+    }
+    return result;
+}
+
+// Multiply v.T * A
+vec* left_trans_multiply(vec const& v, matrix const& A) {
+    vec* res = new vec(A[0].size(), 0); // Result as long as the columns in A
+    for (int i=0; i < A.size(); i++) {
+        for (int j=0; j < A[0].size(); j++) {
+            (*res)[j] += v[i] * A[i][j];
+        }
+    }
+    return res;
+}
+
+double left_trans_multiply(vec const& v, vec const& v2) {
+    double result = 0;
+    for (int i=0; i < v.size(); i++) {
+        result += v[i] * v2[i];
+    }
+    return result;
+}
+
+matrix operator *(matrix const& a, matrix const& b) {
+    int m = a[0].size();
+    int n = b.size();
+
+    auto result = matrix(m, vec(n, 0));
+    for (int i = 0; i < m; i++) {
+        for (int k=0; k < m; k++) {
+            for (int j=0; j < n; j++) {
+                result[i][j] += a[i][j] * b[k][j];
+            }
+        }
+    }
+    return result;
+}
 
 vec operator +(vec const& v1, vec const& v2) {
     vec ret = vec(v1.size());
@@ -94,6 +177,7 @@ vec operator +(vec const& v1, vec const& v2) {
     }
     return ret;
 }
+
 
 class sparse_matrix {
     private:
