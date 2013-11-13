@@ -75,8 +75,8 @@ vec operator +(vec const& v1, vec const& v2) {
 
     for (int i = 0; i < v1.size(); i++) {
         ret[i] = v1[i] + v2[i];
-        return ret;
     }
+    return ret;
 }
 
 vec operator /(vec& v, double c) {
@@ -97,10 +97,10 @@ vec operator *(vec& v1, vec& v2) {
 
 
 vec operator *(vec const& v1, double c) {
-    auto ret = vec(v1.size());
+    vec ret = vec(v1);
 
     for (int i = 0; i < v1.size(); i++) {
-        ret[i] = v1[i] * c;
+        ret[i] *= c;
     }
     return ret;
 }
@@ -110,11 +110,11 @@ vec operator *(double c, vec const& v) {
 }
 
 matrix operator *(matrix const& m, double c) {
-    matrix ret = matrix(m.size(), vec(m[0].size(), 0));
+    matrix ret = matrix(m);
 
     for (int i = 0; i < m.size(); i++) {
         for (int j = 0; j < m[i].size(); j++) {
-            ret[i][j] += c;
+            ret[i][j] *= c;
         }
     }
     return ret;
@@ -139,7 +139,7 @@ matrix* submatrix(matrix const& A) {
 
     for (int i = 1; i < A.size(); i++) {
         for (int j = 1; j < A[0].size(); j++) {
-            (*result)[i][j] = A[i][j];
+            (*result)[i - 1][j - 1] = A[i][j];
         }
     }
     return result;

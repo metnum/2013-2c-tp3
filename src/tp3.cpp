@@ -50,35 +50,27 @@ std::pair<double, double> qr_two_iterations(matrix& Y, vec& b) {
         (*A)[i] = Y[i];
     }
 
-    cout << "A matrix loaded" << endl;
-
     unique_ptr<vec> vt_A (left_trans_multiply(*v, *A));
     double vt_B = left_trans_multiply(*v, *r);
 
     unique_ptr<matrix> vvtA (mult_transposed(*v, *vt_A));
     vec vvtB = vt_B * (*v);
 
-    cout << "Second mult round passed" << endl;
-    cout << "A " << A->size() << "x" << (*A)[0].size() << endl;
-    cout << "vvtA  " << vvtA->size() << "x" << (*vvtA)[0].size() << endl;
     *A = *A - (2 * (*vvtA));
 
-    cout << "A subtracted" << endl;
     auto vvtBd = vvtB * 2;
     vec r_res = (*r) - vvtBd;
 
 
     // Second iteration
     auto x_2 = make_shared<vec> (vec(m-1));
-    auto Y_it = Y.begin();
-    Y_it = next(Y_it);
 
     // transform(Y_it, end(Y), x_2->begin(), [](vec v1) { return v1[1]; });
-    for (int i=0; i < Y.size(); i++) {
-        (*x_2)[0] = Y[i][0];
+    for (int i=0; i < Y.size() - 1; i++) {
+        (*x_2)[i] = Y[i + 1][1];
     }
 
-    auto v_2 = make_unique<vec> (vec(n - 1, 0));
+    auto v_2 = make_unique<vec> (vec(m - 1, 0));
     (*v_2)[0] = 1;
 
     auto alpha_2 = ((*x_2)[0] / abs((*x_2)[0])) * norm((*x_2), 2);
@@ -98,7 +90,7 @@ std::pair<double, double> qr_two_iterations(matrix& Y, vec& b) {
     unique_ptr<matrix> vvtA2 (mult_transposed(*v_2, *vt_A2));
     vec vvtB2 = vt_B2 * (*v_2);
 
-    *A_2 = *A - (2 * (*vvtA2));
+    *A_2 = *A_2 - (2 * (*vvtA2));
     auto vvtB2d = vvtB2 * 2;
     vec r_2 = r_res_sub - vvtB2d;
     // Insert slice into original matrix
@@ -182,6 +174,7 @@ vec power_quad(sparse_matrix& P_t, double epsilon, int quad_frequency=5, int qua
 
         /*
         if (k % quad_frequency == quad_modulo) {
+            cout << "Performing extrapolation..." << endl;
             x_k = quad_extrapolation(*x_3, *x_2, *x_1, *x_k);
         }
         */
