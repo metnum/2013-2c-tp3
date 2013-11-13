@@ -1,1 +1,31 @@
 \section{Desarrollo}
+ % * Detalles de implementacion: Mencionar como se encaro el trabajo, la primera implementacion en python y la version final en C++. En python se uso scipy con matrices esparsas y optimizamos el codigo y todo corre rapido para los datasets mas grandes que encontramos
+ % * en C se decidio utilziar STL y map<map<>> para la matriz esparsa, solo se implementaron las operaciones necesarias para correr el agoritmo
+ % * dependiendo el algoritmo y x0 no es necesario normalizar al final
+ % * probar con un dataset grande -- no pudimos porque quedaron mas grandes los que bajamos (alto chamuyo!!! weeeeeoonnn)
+ % * para hacer QR decidimos hacer todos los pasos a mano (sin iteraciones) ya que son solo dos, porque es una matrix de 2x2, cita al paper con resolucion linda Gram-Schmidt (Algorithm 7)
+ % * se decidio utilizar como criterio de parada la chingada diferencia de norma1 por la mismas razones que kamvar (citar el paper y hacer mini mini resumen)
+
+\subsection{Detalles de Implementación} % (fold)
+\label{sub:detalles_de_implementaci_n}
+
+\subsubsection{Enfoque Inicial - Etapa Python} % (fold)
+\label{ssub:enfoque_inicial}
+
+En principio para evitarnos detalles de manejo de memoria y contar con una mayor de expresividad de lenguaje, implementamos el trabajo en Python.\\
+
+Usando librerías como Numpy y Scipy, pudimos hacer uso de matrices esparsas y operarlas cómodamente de manera eficiente. Tan sólo unas horas de trabajo y terminamos una implementación que devolvía resultados que parecían correctos. Inclusive con datasets enormes, como los que se pueden encontrar en la página de Stanford, el programa en Python tardaba pocos segundos por iteración y en cuestión de minutos armaba el ranking.\\
+
+\subsubsection{Implementación - Etapa C++} % (fold)
+\label{ssub:implementaci_n_etapa_c_}
+
+Una vez habiendo comprobado que la idea de cómo implementar este trabajo funcionaba, es que usamos el código de Python a manera de pseudocódigo para el de C++.\\
+
+En C++ para armar las matrices esparsas usamos STL y la función $map$. A diferencia de la implementación en Python donde hacemos uso indiscriminado de la riqueza de las librerías, nos vimos forzados a acomodar las operaciones de manera tal que tengamos que implementar solamente las operaciones exclusivamente necesarias.
+
+% subsubsection implementaci_n_etapa_c_ (end)
+
+
+% subsubsection enfoque_inicial (end)
+
+% subsection detalles_de_implementaci_n (end)
