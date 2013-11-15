@@ -56,6 +56,18 @@ vec operator -(vec const& v1, vec const& v2) {
     return ret;
 }
 
+void sub_inplace(vec & v1, vec const& v2) {
+    for (int i=0; i < v1.size(); i++) {
+        v1[i] -= v2[i];
+    }
+}
+
+
+void sum_inplace(vec & v1, vec const& v2) {
+    for (int i=0; i < v1.size(); i++) {
+        v1[i] += v2[i];
+    }
+}
 
 matrix operator -(matrix const& m1, matrix const& m2) {
     assert(m1.size() == m2.size());
@@ -72,16 +84,15 @@ matrix operator -(matrix const& m1, matrix const& m2) {
 }
 
 
-unique_ptr<matrix> sub_inplace(unique_ptr<matrix> m1, matrix const& m2) {
-    assert(m1->size() == m2.size());
-    assert((*m1)[0].size() == m2[0].size());
+void sub_inplace(matrix& m1, matrix const& m2) {
+    assert(m1.size() == m2.size());
+    assert(m1[0].size() == m2[0].size());
 
-    for (int i = 0; i < m1->size(); i++) {
-        for (int j = 0; j < (*m1)[0].size(); j++) {
-            (*m1)[i][j] -= m2[i][j];
+    for (int i = 0; i < m1.size(); i++) {
+        for (int j = 0; j < m1[0].size(); j++) {
+            m1[i][j] -= m2[i][j];
         }
     }
-    return move(m1);
 }
 
 vec operator +(vec const& v1, vec const& v2) {
@@ -99,14 +110,25 @@ vec operator /(vec& v, double c) {
     return copied;
 }
 
-vec operator *(vec& v1, vec& v2) {
+void div_inplace (vec& v, double c) {
+    transform(std::begin(v), std::end(v), std::begin(v), [&](double d) { return d/c; });
+}
+
+vec operator *(vec const& v1, vec const& v2) {
     auto ret = vec(v1.size());
 
-    assert(v1.size() != v2.size());
+    assert(v1.size() == v2.size());
     for (int i=0; i < v1.size(); i++) {
         ret[i] = v1[i] * v2[i];
     }
     return ret;
+}
+
+void mult_inplace(vec* v1, vec const& v2) {
+    assert(v1->size() == v2.size());
+    for (int i=0; i < v1->size(); i++) {
+        (*v1)[i] *= v2[i];
+    }
 }
 
 
@@ -118,6 +140,13 @@ vec operator *(vec const& v1, double c) {
     }
     return ret;
 }
+
+void mult_inplace(vec& v, double c) {
+    for (int i = 0; i < v.size(); i++) {
+        v[i] *= c;
+    }
+}
+
 
 vec operator *(double c, vec const& v) {
     return v * c;
@@ -193,13 +222,12 @@ matrix operator *(matrix const& a, matrix const& b) {
     return result;
 }
 
-unique_ptr<matrix> mult_inplace(unique_ptr<matrix> m, double d) {
-    for (int i = 0; i < m->size(); i++) {
-        for (int j = 0; j < (*m)[i].size(); j++) {
-            (*m)[i][j] *= d;
+void mult_inplace(matrix& m, double d) {
+    for (int i = 0; i < m.size(); i++) {
+        for (int j = 0; j < m[i].size(); j++) {
+            m[i][j] *= d;
         }
     }
-    return move(m);
 }
 
 void insert_block(matrix& A, matrix const& a, int row, int col) {

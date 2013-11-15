@@ -199,7 +199,7 @@ def quad_extrapolation(x_3, x_2, x_1, x_k):
     return x
 
 
-def power_quad(P, x, criteria, epsilon, quad_freq=7, quad_modulo=4):
+def power_quad(P, x, criteria, epsilon, quad_freq=10, quad_modulo=8):
     """
     Perform the power method for the PageRank matrix
     using Kamvar's optimization for matrix multiplication
@@ -247,6 +247,7 @@ def power_quad(P, x, criteria, epsilon, quad_freq=7, quad_modulo=4):
 
 # Just two iterations of it
 def qr_two_iterations(A, b):
+    from ipdb import set_trace; set_trace();
     m, n = A.shape
 
     # First iteration
@@ -299,7 +300,7 @@ if __name__ == '__main__':
     print
     print "Computing PageRank with regular Power Quad..."
     res = power_quad(web, v(pages), 'abs', 0.000001)
-    print res / norm(res, 1)  # es necesario normalizar?
+    print res / norm(res, 2)  # es necesario normalizar?
 
     # Uncomment to test result
     # print P2.T.dot(res) / norm(res, 2)
