@@ -1,5 +1,23 @@
 \section{Introducción Teórica}
 
+\subsection{Page Rank}
+
+La manera en cómo se modela el problema del ranking es usando una matriz de adyacencias. Sea $W \in \mathbb{R}^{n \times n}$ donde $n$ es la cantidad de sitios indexados, luego el elemento $w_{ij}$ es igual $1$ si existe un link de la página $i$ a la página $j$ y $0$ en caso contrario. A su vez los links autoreferenciados se ignoran por lo que en diagonal tenemos todos valores nulos.\\
+
+Ahora con $W$ podemos extraer la cantidad de links salientes de cada página, simplemente sumando los elementos de la fila correspondiente, llamemos $n_j$ al grado de la página $j$ donde $n_j = \sum^{n}_{i = 1} w_{ij}$
+
+\subsection{QR y Reflecciones de Householder}
+
+Existen variadas formas de descomponer una matriz, en este trabajo en particular usaremos $QR$, el cual consiste en descomponer una matriz $A$ en una matriz ortogonal $Q$ y una triangular superior $R$ de manera que $A = QR$. Al tener descompuesta $A$ en esa forma y teniendo un sistema $Ax = b$, la obtención del vector solución se realiza resolviendo el sistema $Rx = Q^{t}b$.\\
+
+A su vez existen distintos procedimientos para poder hallar la descomposición $QR$ de una matriz, una de ellas son las Reflecciones de Householder, las cuales consisten en ir poniendo ceros debajo de la diagonal en cada caso del procedimiento. Este procedimiento sólo se puede llevar a cabo si es que la matriz tiene mas filas que columnas o a la sumo igual cantidad.\\
+
+Yendo en detalle: Sea $A \in \mathbb{R}^{m \times n}$ una matriz con $m \ge n$, sea $x$ el vector columna correspondiente a la primer columna
+
+
+
+\subsection{Cálculo alternativo de $x^{(k + 1)} = P_2x^{(k)}$}
+
 Veamos primero cómo utilizando el algoritmo de Kamvar podemos optimizar el espacio requerido en memoria para el almacenamiento de la matriz $P_2$ y el tiempo de ejecución requerido para hacer la multiplicación entre matrices y vectores.\\
 
 \newcommand{\vectornorm}[1]{\left\|#1\right\|}
