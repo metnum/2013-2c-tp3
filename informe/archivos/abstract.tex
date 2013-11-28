@@ -1,16 +1,18 @@
 \section{Abstract}
 
-En este trabajo nos concentraremos en analizar la teoría detrás de cómo hace Google para indexar los sitios web.\\
+En este trabajo nos concentraremos en analizar la teoría detrás del algoritmo PageRank, famoso por su utilización por
+Google en su motor de búsquedas, y un conjunto de optimizaciones propuestas por \textit{Kamvar} y \textit{HaveliWala}.
 
-Dado a conocer a través de un paper en 1998, el algoritmo Page Rank, se convirtió en una de las claves del suceso del motor de búsqueda Google. Su implementación se basa en la creación de un ranking en el cual se pondera con un cierto criterio cada una de las páginas.\\
+Dado a conocer a través de un paper en 1998, el algoritmo Page Rank, se convirtió en una de las claves del
+éxito del motor de búsqueda Google. Su implementación se basa en la creación de un ranking en el cual se pondera
+con un cierto criterio cada una de las páginas según un modelo de \textit{navegante aleatório}.\\
 
-En el armado del ranking recaen conceptos de Algebra Lineal, los cuales veremos en detalle a lo largo de este informe. En particular veremos un método iterativo para calcular el ranking y una variación (extraída de un paper), la cual empíricamente optimiza la cantidad de iteraciones.\\
-
-Al final presentaremos resultados de experimentaciones que nos parecieron pertinentes, mostrando que efectivamente la variación del método iterativo sí optimiza la cantidad de iteraciones.\\
+Al final presentaremos resultados de experimentaciones que nos parecieron pertinentes, mostrando que efectivamente
+la variación del método iterativo sí optimiza considerablemente la convergencia de PageRank.\\
 
 {\bf Palabras clave:}
 \begin{itemize} 
-    \item Page Rank
+    \item PageRank
     \item Metodo de Potencia
     \item Extrapolación Cuadrática
     \item QR

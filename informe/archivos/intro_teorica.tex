@@ -1,24 +1,87 @@
 \section{Introducción Teórica}
 
-\subsection{Page Rank}
+\subsection{PageRank}
 
-La manera en cómo se modela el problema del ranking es usando una matriz de adyacencias. Sea $W \in \mathbb{R}^{n \times n}$ donde $n$ es la cantidad de sitios indexados, luego el elemento $w_{ij}$ es igual $1$ si existe un link de la página $i$ a la página $j$ y $0$ en caso contrario. A su vez los links autoreferenciados se ignoran por lo que en diagonal tenemos todos valores nulos.\\
+PageRank es un algoritmo que modela un proceso aleatorio de navegación a través de 
+distintas páginas Web, cuyo objetivo es generar un ranking de importancia de páginas,
+que en la práctica se utiliza para refinar los resultados de búsquedas de texto en las mismas
+para refinar los resultados por relevancia.
 
-Ahora con $W$ podemos extraer la cantidad de links salientes de cada página, simplemente sumando los elementos de la fila correspondiente, llamemos $n_j$ al grado de la página $j$ donde $n_j = \sum^{n}_{i = 1} w_{ij}$
+El problema se define como encontrar el autovector asociado al autovalor 1 de la matriz de transiciones
+correspondientes a un grafo de páginas Web interconectadas. Dado que esta matriz se puede ajustar
+para que sea estocástica, el autovector corresponde a la proporción de tiempo que pasa un navegante
+aleatorio en una página, que en la realidad resulta un buen indicador de importancia.
 
-\subsection{QR y Reflecciones de Householder}
+La manera en cómo se modela el problema del ranking es usando una matriz de adyacencias.
+Sea $W \in \mathbb{R}^{n \times n}$ donde $n$ es la cantidad de sitios indexados, luego el elemento
+$w_{ij}$ es igual $1$ si existe un link de la página $i$ a la página $j$ y $0$ en caso
+contrario. A su vez los links autoreferenciados se ignoran por lo que en diagonal tenemos todos valores nulos.\\
 
-Existen variadas formas de descomponer una matriz, en este trabajo en particular usaremos $QR$, el cual consiste en descomponer una matriz $A$ en una matriz ortogonal $Q$ y una triangular superior $R$ de manera que $A = QR$. Al tener descompuesta $A$ en esa forma y teniendo un sistema $Ax = b$, la obtención del vector solución se realiza resolviendo el sistema $Rx = Q^{t}b$.\\
+Ahora con $W$ podemos extraer la cantidad de links salientes de cada página,
+simplemente sumando los elementos de la fila correspondiente. Llamamos $n_j$
+al grado de la página $j$ donde $n_j = \sum^{n}_{i = 1} w_{ij}$.
 
-A su vez existen distintos procedimientos para poder hallar la descomposición $QR$ de una matriz, una de ellas son las Reflecciones de Householder, las cuales consisten en ir poniendo ceros debajo de la diagonal en cada caso del procedimiento. Este procedimiento sólo se puede llevar a cabo si es que la matriz tiene mas filas que columnas o a la sumo igual cantidad.\\
+\subsection{Matriz de transiciones}
 
-Yendo en detalle: Sea $A \in \mathbb{R}^{m \times n}$ una matriz con $m \ge n$, sea $x$ el vector columna correspondiente a la primer columna
+Con la matriz de adyacencias originales, ahora queremos tomar sus datos y generar con ellos
+una matriz estocástica que defina la probabilidad de clickear en un link al azar
+en una página y transicionar hacia otra.
 
+Para ello, consideramos $P$ la matriz que se obtiene a partir de tomar la matriz de
+adyacecias y normalizando sus filas para que tengan norma 2 igual a 1. Es decir,
+si una página tiene 2 links salientes, la probabilidad de clickear en uno de ellos
+es $frac{1}{2}$, con tres links es $frac{1}{3}$, y así sucesivamente.
 
+El problema que hay con esto es que no todas las páginas necesariamente tienen links
+salientes, por lo que se asume que si un navegante llega a una página sin \textit{outlinks},
+elige una página al azar sobre el universo de todas las páginas.
+
+Para modelar esto, sea $\vec{d}$ un vector con longitud $n$, la posición $d_i$ toma los valores\\
+
+\begin{math}
+d_i =
+\left\{
+\begin{array}{ll}
+0   & \mbox{si el sitio tiene links salientes}\\
+1   & \mbox{si el sitio no tiene links salientes}
+\end{array}
+\right.
+\end{math}\\
+
+Luego, sea $\vec{v}$ un vector con logitud $v$ con $v_i = [\frac{1}{n}]$, definimos
+la matriz $D$ como\\
+
+\begin{math}
+D = d^t * v
+\end{math}\\
+
+Luego definimos $P' = P + D$, que es estocástica.
+
+\subsection{Teleporteo}
+
+Además del manejo de navegación aleatoria, \textit{PageRank} considera una probabilidad de que
+en cualquier momento el navegador eliga saltar a una nueva página al azar, sin considerar
+los links de la página actual. Esto se llama \textit{teleporteo}, y se modela como un factor
+$c$ que multiplica a $P'$  y una matriz $E \in R^{nxn}$, con una probabilidad uniforme de $\frac{1}{n}$.
+
+Luego la expresión que resuelve el problema de \textit{PageRank} de la matriz de transiciones
+con teleporteo, dado el vector de probabilidades $\vec{x}$, es\\
+
+\begin{align*}
+Ax & =(cP' + (1-c)E)^{t} \vec{x}
+\end{align*}
+
+\subsection{Resolución de PageRank}
+
+La resolución de \textit{PageRank}, en su forma más básica, consiste en obtener el autovector 
+asociado al autovalor 1. La forma más simple de hacerlo es por medio del método de potencias.
+que funciona computando $A\vec{x}$ iterativamente hasta cumplir con un criterio de detención.
 
 \subsection{Cálculo alternativo de $x^{(k + 1)} = P_2x^{(k)}$}
 
-Veamos primero cómo utilizando el algoritmo de Kamvar podemos optimizar el espacio requerido en memoria para el almacenamiento de la matriz $P_2$ y el tiempo de ejecución requerido para hacer la multiplicación entre matrices y vectores.\\
+Veamos primero cómo utilizando el algoritmo de Kamvar podemos optimizar el espacio requerido
+en memoria para el almacenamiento de la matriz $P_2$ y el tiempo de ejecución requerido para ha
+cer la multiplicación entre matrices y vectores.\\
 
 \newcommand{\vectornorm}[1]{\left\|#1\right\|}
 Queremos ver que el algoritmo propuesto por \cite[Algoritmo 1]{Kamvar2003} es equivalente
@@ -47,72 +110,20 @@ cP^{t}\vec{x} + (1-c)E^{t}\vec{x} &= cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \
 (1-c)E^{t}\vec{x} &= (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v}
 \end{align*}
 
-\subsection{Lema: $P^{t} \vec{x}$ preserva la Norma 1 de $\vec{x}$}
-Sea $P^{t}$ una matriz estocástica por columnas, luego los elementos de cada columna suman 1.
-
-Luego $P^{t}$ describe una transformación lineal de $\vec{x}$ donde la suma de los valores de cada $x_i$
-se reparte en los $y_i$ resultantes (por ser cada $y_i$ una combinación lineal de los $x_i$.) 
-Como cada columna de $P$ suma $1$, y cada elemento de $x$  se termina
-multiplicando por los elementos de una columna, y además los valores de $P$ y $ x$  son positivos,
-entonces la ecuación
-\begin{align*}
-\sum_{i=1}^{n} |x_i| \\
-\end{align*}
-\centerline{es equivalente a}
-\begin{align*}
-\sum_{i=1}^{n} |y_i|
-\end{align*}
-Luego $P^{t}$ preserva norma 1.
-
-Volviendo al problema, si observamos que la norma 1 de $y$  es
-\begin{align*}
-\vectornorm{\vec{y}}_1 &= \vectornorm{cP^{t} \vec{x}}_1 \\
-               &= c\vectornorm{\vec{x}}_1
-\end{align*}
-entonces podemos ver que
-
-\begin{align*}
-\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1 &= \vectornorm{\vec{x}}_1 - c \vectornorm{\vec{x}}_1 \\
-                                        &= (1-c) \vectornorm{\vec{x}}_1 \\
-                                        &= (1-c) \vectornorm{\vec{x}}_1
-\end{align*}
-
-por ende
-\begin{align*}
-(\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1)\vec{v} &= (1-c) \vectornorm{\vec{x}}_1 \vec{v}
-\end{align*}
-
-entonces el método de algortimo 1 tiene la forma
-\begin{align*}
-cP^{t}\vec{x} + (1-c) \vectornorm{\vec{x}}_1 \vec{v}
-\end{align*}
-
-Si observamos la segunda mitad de la definición de $P^{t}$, es decir, $(1-c)E^{t}$, veremos que el producto
-a la izquierda por $\vec{x}$ resulta en una matrix con la forma
-
-\begin{align*}
-E^{t}\vec{x} &= 
-\begin{bmatrix}
-\frac{1-c}{n} \sum_{i=1}^{n} |x_{i}|  \\
-\cdots  \\
-\cdots  \\
-\cdots  \\
-\cdots  \\
-\frac{1-c}{n} \sum_{i=1}^{n} |x_{i}|  \\
-\end{bmatrix}
-=
-\begin{bmatrix}
-\frac{1-c}{n} \vectornorm{\vec{x}}_1 \\
-\cdots  \\
-\cdots  \\
-\cdots  \\
-\cdots  \\
-\frac{1-c}{n} \vectornorm{\vec{x}}_1 \\
-\end{bmatrix}
-=
-(1-c)\frac{1}{n} \vectornorm{\vec{x}}_1
-\end{align*}
-
+Sea una co
 Con ello concluimos que los dos términos del algoritmo de Kamvar son equivalentes
 a la matriz $A$ de transiciones. $ \blacksquare $
+
+
+\subsection{QR y Reflecciones de Householder}
+
+Existen variadas formas de descomponer una matriz. En este trabajo en particular usaremos la descomposición $QR$,
+la cual consiste en descomponer una matriz $A$ en una matriz ortogonal $Q$ y una triangular superior $R$
+de manera que $A = QR$. Al tener descompuesta $A$ en esa forma y teniendo un sistema $Ax= b$,
+la obtención del vector solución se realiza resolviendo el sistema $Rx = Q^{t}b$.\\
+
+A su vez existen distintos procedimientos para poder hallar la descomposición $QR$ de una matriz.
+Uno de ellos es las \textit{reflecciones de Householder}, las cuales consisten en ir
+poniendo ceros debajo de la diagonal en cada caso del procedimiento.
+
 
