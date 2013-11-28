@@ -5,7 +5,7 @@ import itertools
 import sys
 
 from numpy import matrix, sign, zeros, empty
-from numpy.linalg import norm, solve, qr
+from numpy.linalg import norm, solve
 from scipy.sparse import lil_matrix
 
 # Operaciones
@@ -41,7 +41,7 @@ from scipy.sparse import lil_matrix
 # Otras funciones matriz
 # sparse_matrix& identity(int m, int n)
 
-REMAIN_FACTOR = 0.85
+REMAIN_FACTOR = 0.95
 TELEPORTATION_FACTOR = 1 - REMAIN_FACTOR
 
 
@@ -135,7 +135,7 @@ def P_2(P_1, v):
     return P_2
 
 
-def pagerank_power_kamvar(P, x, criteria, epsilon):
+def pagerank_power_kamvar(P, x, criteria, epsilon, remain_factor):
     """
     Perform the power method for the PageRank matrix
     using Kamvar's optimization for matrix multiplication.
@@ -145,7 +145,7 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
     x is the initial guess for the solution
     flow_factor 1 - TELEPORTATION_FACTOR
     """
-    MAX_ITERS = 100
+    MAX_ITERS = 10000
 
     k = 1
     delta = 1000000.0  # At least one iteration will be performed
@@ -154,9 +154,10 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
     # v = matrix([1.0 / n] * n).T  # we can just multiply by the const 1/n
     uniform_prob = 1.0 / n
 
+    results = [x]
     while delta >= epsilon and k < MAX_ITERS:
         # Optimized Ax multiplication from algorithm 1
-        y = P.dot(REMAIN_FACTOR * x)
+        y = P.dot(remain_factor * x)
         w = norm(x, 1) - norm(y, 1)
         x_k = y + w * uniform_prob
 
@@ -165,9 +166,12 @@ def pagerank_power_kamvar(P, x, criteria, epsilon):
         else:
             delta = norm(x_k - x) / norm(x)
 
-        print "Iter %s, delta=%s..." % (k, delta)
+        # print "Iter -> %s %s <- delta" % (k, delta)
         k += 1
         x = x_k
+        results.append(x_k)
+    for result in results[:-1]:
+        print norm(abs(x_k - result), 1)
 
     return x_k
 
@@ -180,7 +184,7 @@ def solve_gammas(Y, y_k):
 
 
 def quad_extrapolation(x_3, x_2, x_1, x_k):
-    print "Performing interpolation..."
+    # print "Performing interpolation..."
     y_2 = x_2 - x_3
     y_1 = x_1 - x_3
     y_k = x_k - x_3
@@ -199,7 +203,7 @@ def quad_extrapolation(x_3, x_2, x_1, x_k):
     return x
 
 
-def power_quad(P, x, criteria, epsilon, quad_freq=10, quad_modulo=8):
+def power_quad(P, x, criteria, epsilon, quad_freq, remain_factor):
     """
     Perform the power method for the PageRank matrix
     using Kamvar's optimization for matrix multiplication
@@ -209,7 +213,7 @@ def power_quad(P, x, criteria, epsilon, quad_freq=10, quad_modulo=8):
     x is the initial guess for the solution
     flow_factor 1 - TELEPORTATION_FACTOR
     """
-    MAX_ITERS = 100
+    MAX_ITERS = 10000
 
     k = 1
     delta = 1000000.0  # At least one iteration will be performed
@@ -222,14 +226,17 @@ def power_quad(P, x, criteria, epsilon, quad_freq=10, quad_modulo=8):
     x_1 = x
     x_k = x
 
+    results = [x]
     while delta >= epsilon and k < MAX_ITERS:
         # Optimized Ax multiplication from algorithm 1
-        y = P.dot(REMAIN_FACTOR * x_k)
+        y = P.dot(remain_factor * x_k)
         w = norm(x_k, 1) - norm(y, 1)
         x_k = y + w * prob_teleport
 
-        if k % quad_freq == quad_modulo:
-            print "Performing quad extrapolation..."
+        # do_quad = False
+        if k in quad_freq:
+            # print "Performing quad extrapolation..."
+            # do_quad = True
             x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
 
         if criteria == 'abs':
@@ -240,8 +247,11 @@ def power_quad(P, x, criteria, epsilon, quad_freq=10, quad_modulo=8):
         x_3 = x_2
         x_2 = x_1
         x_1 = x_k
-        print "Iter %s, delta=%s..." % (k, delta)
+        # print "Iter -> %s %s %s <- delta / do quad" % (k, delta, do_quad)
         k += 1
+        results.append(x_k)
+    for result in results[:-1]:
+        print norm(abs(x_k / norm(x_k, 1) - result / norm(result, 1)), 1)
     return x_k
 
 
@@ -293,14 +303,96 @@ if __name__ == '__main__':
     # dense = web.todense()
     # P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
 
-    # print "Computing PageRank with regular Power Method..."
-    # res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001)
-    # print 'result:\n', res
+    ########################### c=.9
+    print
+    print "Computing PageRank with regular Power Method... c=.9"
+    res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001, 0.9)
+    print 'result:\n', res
 
     print
-    print "Computing PageRank with regular Power Quad..."
-    res = power_quad(web, v(pages), 'abs', 0.000001)
-    print res / norm(res, 2)  # es necesario normalizar?
+    print "Computing PageRank with regular Power Quad...c=.9, solo una vez en la 5ta iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, [5], 0.9)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.9, cada 10 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(10, 1000, 10), 0.9)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.9, cada 5 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(5, 1000, 5), 0.9)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.9, cada 4 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(4, 1000, 4), 0.9)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    ########################### c=.95
+    print
+    print "Computing PageRank with regular Power Method... c=.95"
+    res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001, 0.95)
+    print 'result:\n', res
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.95, solo una vez en la 5ta iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, [5], 0.95)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.95, cada 10 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(10, 1000, 10), 0.95)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.95, cada 5 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(5, 1000, 5), 0.95)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.95, cada 4 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(4, 1000, 4), 0.95)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    ########################### c=.99
+    print
+    print "Computing PageRank with regular Power Method... c=.99"
+    res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001, 0.99)
+    print 'result:\n', res
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.99, solo una vez en la 5ta iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, [5], 0.99)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.99, cada 10 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(10, 1000, 10), 0.99)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.99, cada 5 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(5, 1000, 5), 0.99)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.99, cada 4 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, range(4, 1000, 4), 0.99)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Los siguientes dos casos deberian dar lo mismo y no"
+    print
+    print "Computing PageRank with regular Power Quad...c=.99, cada 4 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, [], 0.85)
+    print res / norm(res, 1)  # es necesario normalizar?
+
+    print
+    print "Computing PageRank with regular Power Quad...c=.99, cada 4 iter"
+    res = power_quad(web, v(pages), 'rel', 0.0001, [4], 0.85)
+    print res / norm(res, 1)  # es necesario normalizar?
+
 
     # Uncomment to test result
     # print P2.T.dot(res) / norm(res, 2)
