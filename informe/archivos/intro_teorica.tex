@@ -77,6 +77,10 @@ La resolución de \textit{PageRank}, en su forma más básica, consiste en obten
 asociado al autovalor 1. La forma más simple de hacerlo es por medio del método de potencias.
 que funciona computando $A\vec{x}$ iterativamente hasta cumplir con un criterio de detención.
 
+Este método presenta un problema práctico, en que la matriz de transiciones suele ser muy
+esparsa, pero si se considera la información agregada por las matrices $E$ y $D$, la misma 
+resulta densa. A continuación veremos que esto se puede resolver.
+
 \subsection{Cálculo alternativo de $x^{(k + 1)} = P_2x^{(k)}$}
 
 Veamos primero cómo utilizando el algoritmo de Kamvar podemos optimizar el espacio requerido
@@ -85,32 +89,55 @@ cer la multiplicación entre matrices y vectores.\\
 
 \newcommand{\vectornorm}[1]{\left\|#1\right\|}
 Queremos ver que el algoritmo propuesto por \cite[Algoritmo 1]{Kamvar2003} es equivalente
-a la operación $\vec{y} = A\vec{x}$, para $A=(cP' + (1-c)E)^{t}$, donde $P'$ es la matriz 
-estocástica por filas de transiciones de links ajustada para considerar saltos aleatorios
-en páginas sin outlinks, y $E$ es la matriz uniforme de teletransportación con valor $\frac{1}{n}$ en cada celda.
+a la operación $\vec{y} = A\vec{x}$, para $A=(cP + (1-c)E)^{t}$, donde $P$ es la matriz
+de transiciones de links, no ajustada por las páginas sin outlinks,
+y $E$ es la matriz uniforme de teletransportación con valor $\frac{1}{n}$ en cada celda.
 
 Para ello, expandimos las ecuaciones de ambos y veremos que las mismas producen el mismo cálculo.
 
-Primero, la matrix $P^{t}$ se desarrolla como 
+Primero, la ecuación $A\vec{x}$ se desarrolla como\\
 \begin{align*}
-(cP + (1 - c)E)^{t} \vec{x}
+(c(P + D) + (1 - c)E)^{t} \vec{x}
 \end{align*}
 
 Y la matrix de \cite[Algoritmo 1]{Kamvar 2003} como
 \begin{align*}
-cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v}
+cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1)\vec{v}
 \end{align*}
 
 donde $\vec{y}$ es el vector resultante de $cP^{t}\vec{x}$ y $\vec{v}$ es el vector de probabilidad
 uniforme de valor $\frac{1}{n}$ en cada elemento. Luego planteamos la equivalencia
 
 \begin{align*}
-(cP + (1-c)E)^{t} \vec{x} v&= cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v} \\
-cP^{t}\vec{x} + (1-c)E^{t}\vec{x} &= cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v} \\
-(1-c)E^{t}\vec{x} &= (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_2)\vec{v}
+c(P + D)^{t} + (1-c)E^{t} \vec{x} &= cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1)\vec{v} \\
+cP^{t}\vec{x} + cD^{t}\vec{x} + (1-c)E^{t}\vec{x} &= cP^{t}\vec{x} + (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1)\vec{v} \\
+cD^{t}\vec{x} + (1-c)E^{t}\vec{x} &= (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1)\vec{v}
 \end{align*}
 
-Sea una co
+Veamos por qué el término del lado izquierdo es equivalente al derecho.
+
+La norma 1 del vector es la suma de los valores absolutos de sus elementos.
+Observemos que, para las columnas de $P$, las mismas o bien tienen norma 1 que vale 1, o cero.
+Es decir, las columnas no-cero de $P$ contribuyen a la norma 1 de $\vec{y}$.
+
+Observemos también que en la multiplicación $(1-c)E\vec{x}$, la norma 1 de este producto es
+$(1-c)$, pues la norma 1 de cada columna de $E$ es 1 y $\vectornorm{\vec{x}} = 1$.
+
+Por ultimo, también vemos que para aquellas columnas de ceros en $P^{t}$, las columnas no-cero de
+ $D$ preservan la norma de las mismas.
+
+Dados los hechos anteriores, podemos obervar que $\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1$ se
+puede interpretar como la norma que se ``pierde'' cuando $\vec{x}$  es multiplicada por $cP^t$.
+Esta ``pérdida de norma'' se debe justamente a que falta sumar los products de $\vec{x}$  por
+$E$  y $D$ de la ecuación, pues $A$ preserva la norma 1.
+
+Ahora, como en $E^t$ y $D^t$, las filas que componen cada matriz son iguales entre sí (en $E^t$ todos elementos valen $\frac{1}{n}$, y
+en $D^t$ como fue descrito en la sección anterior), cuando se realiza $E\vec{x}$ o $D^t\vec{x}$, el resultado
+produce un vector de valores idénticos en cada posición. Estos mismos valores son la diferencia que captura
+$(\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1) \vec{v}$. Luego agregar esto a $\vec{y}$ resulta
+equivalente a haber realizado las sumas de vectores resultantes correspondientes, con la diferencia
+de que no hizo falta materializar dichas matrices.
+
 Con ello concluimos que los dos términos del algoritmo de Kamvar son equivalentes
 a la matriz $A$ de transiciones. $ \blacksquare $
 
