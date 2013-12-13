@@ -149,7 +149,45 @@ de manera que $A = QR$. Al tener descompuesta $A$ en esa forma y teniendo un sis
 la obtención del vector solución se realiza resolviendo el sistema $Rx = Q^{t}b$.\\
 
 A su vez existen distintos procedimientos para poder hallar la descomposición $QR$ de una matriz.
-Uno de ellos es las \textit{reflecciones de Householder}, las cuales consisten en ir
-poniendo ceros debajo de la diagonal en cada caso del procedimiento.
+Uno de ellos es las \textit{reflecciones de Householder}, procedimiento por el cual en cada iteración se obtienen ceros por debajo de la diagonal, llevando la matriz $A$ a ser la matriz $R$ diagonal superior.\\
 
+\begin{center}
+  \centering
+  \includegraphics[scale=0.5]{./archivos/graficos/householder.png}
+\end{center}
+
+El objetivo es hallar una transformación lineal que cambie el vector $x$ en un vector de la misma longitud que sea colineal con $e_1$. Householder refleja a través de la línea punteada (elegida para dividir el ángulo entre $x$ y $e_1$). El máximo ángulo con esta transformación es a lo sumo de 45º.\\
+
+Veamos un paso del procedimiento para poder ilustrar mejor: Sea $A \in \mathbb{R}^{n \times n}$ y sea $x_1$ el vector correspondiente a la primer columna de $A$ y $e_1$ el vector canónico, definimos:
+
+\[
+  \alpha_1 = \vectornorm{x_1}
+\]
+\[
+  u = x_1 - \alpha_1 e_1
+\]
+\[
+  v = \frac{u}{\vectornorm{u}}
+\]
+\[
+  Q_1 = I - 2vv^{T}
+\]
+
+Luego $Q_1$ es la matriz que al multiplicarla a izquierda por $A$ coloca ceros por debajo de la diagonal.
+
+\[
+  Q_1A = \begin{bmatrix}
+   \alpha_1&\star&\dots&\star\\
+      0    &     &     &    \\
+   \vdots  &     &  A' &    \\
+      0    &     &     & \end{bmatrix}
+\]
+
+Repitiendo estos pasos: $Q_{n - 1} \dots Q_2Q_1A = R$. Luego el producto de las $Q$'s forma una matriz ortogonal, lo cual hace fácil y rápido hallar el vector solución del sistema.
+\[
+  Q^T = Q_{n - 1} \dots Q_2Q_1
+\]
+\[
+  Ax = b \iff Q^TAx = Q^Tb \iff Rx = Q^Tb
+\]
 
