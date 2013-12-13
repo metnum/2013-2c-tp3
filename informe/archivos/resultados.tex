@@ -1,10 +1,10 @@
 \section{Resultados}
 
 En esta sección compararemos el Método de la Potencia, su convergencia y como
-influye realizar la Extrapolación Cuadrática en diferentes iteraciones.
+influye realizar la Extrapolación Cuadrática en diferentes iteraciones.\\
 
 También estudiaremos cómo afecta el parámetro de teletransportación a los
-resultados.
+resultados.\\
 
 Para los siguientes análisis decidimos utilizar un criterio de parada relativo.
 Tomamos la diferencia relativa del resultado normalizado de la norma 2 entre
@@ -15,7 +15,7 @@ iteraciones.
 
 Nos interesa estudiar el comportamiento de la convergencia del Método de la
 Potencia para utilizarla como referencia o caso base para luego incorporar la
-Extrapolación Cuadrática.
+Extrapolación Cuadrática.\\
 
 En el Cuadro~\ref{tab:datasets} vemos instancias de prueba que utilizamos para
 realizar las pruebas. Todos estos datasets provienen de sitios web reales
@@ -49,14 +49,14 @@ En la Figura~\ref{fig:datasets} mostramos la cantidad de iteraciones del Método
 de la Potencia necesarias para lograr la convergencia deseada en el resultado.
 Para esta prueba utilizamos $c=0.95$. Graficamos desde la segunda iteración
 debido a que la diferencia relativa de la primer iteración es muy grande,
-dejando el resto del gráfico plano.
+dejando el resto del gráfico plano.\\
 
 Podemos observar que la cantidad de iteraciones necesarias para los tres
 datasets es similar. Esto nos lleva a que la convergencia en los resultados es
 estable y parece no verse afectados por el tamaño de la matriz, es decir, la
 cantidad de nodos. Tampoco parece tener efecto la cantidad de links, ya que
 todos los datasets paracen comportarse de igual forma. El tiempo de ejecución
-por dataset también es similar.
+por dataset también es similar.\\
 
 Para las siguientes pruebas decidimos utilizar \emph{web-BerkStan} ya que es el
 de mayor relación nodos / links, un grafo más fuertamente conexo, con mayores
@@ -66,7 +66,7 @@ relaciones entre páginas.
 
 En la Figura~\ref{fig:eq_c} mostramos el efecto de incorporar Extrapolaciones
 Cuadráticas intercaladas a las iteraciones del Método de la Potencia.
-Graficamos la diferencia norma 1 del resultado en cada iteracion y el resultado
+Graficamos la diferencia norma 1 del resultado en cada iteración y el resultado
 finalmente obtenido. Comparamos:
 
 \begin{itemize}
@@ -81,7 +81,7 @@ Realizamos estas pruebas para $c=.90$, $c=.95$ y $c=.99$. Los resultados se
 encuentran en las Figuras~\ref{fig:c_90},~\ref{fig:c_95} y~\ref{fig:c_99}. Por
 cada variante incluímos también un detalle de la aplicación de las primeras
 iteraciones con Extrapolaciones Cuadráticas en las
-Figuras~\ref{fig:c_90_zoom},~\ref{fig:c_95_zoom} y~\ref{fig:c_99_zoom}.
+Figuras~\ref{fig:c_90_zoom},~\ref{fig:c_95_zoom} y~\ref{fig:c_99_zoom}.\\
 
 Se puede ver claramente un acercamiento más veloz al resultado en las
 iteraciones donde se realizaron Extrapolaciones Cuadráticas. Se observa también
@@ -122,7 +122,7 @@ Extrapolaciones Cuadráticas es significativo y se encuentra en el rango de una
 reducción en la cantidad de iteraciones del $27\%$ al $44\%$ para nuestro
 dataset y los $c$ analizados contra no utilizar ninguna iteración con
 Extrapolación Cuadrática. Incluso una sóla iteración con Extrapolación
-Cuadrática produce beneficios.
+Cuadrática produce beneficios.\\
 
 Por otro lado, podemos apreciar que la convergencia del Método de la Potencia
 depende del $c$ elegido. A mayor $c$ (menor grado de teletransportación) el

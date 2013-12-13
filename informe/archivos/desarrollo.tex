@@ -16,19 +16,19 @@ En principio para evitarnos detalles de manejo de memoria y contar con una mayor
 de expresividad de lenguaje, implementamos el trabajo en Python.\\
 
 Usando librerías como Numpy y Scipy, pudimos hacer uso de matrices
-esparsas y operarlas cómodamente de manera eficiente; dado 
-que las todas las distintas clases de matrices esparses disponibles
+esparsas y operarlas cómodamente de manera eficiente; dado
+que las distintas clases de matrices esparsas disponibles
 exponen la misma interfaz, pudimos probar entre varias hasta encontrar
-una que funcione para nuestro caso de uso.
+una que funcione para nuestro caso de uso.\\
 
 Tan sólo unas horas de trabajo y terminamos una implementación
 que devolvía resultados que parecían correctos. Inclusive con datasets
 enormes, como los que se pueden encontrar en la página de Stanford,
 el programa en Python tardaba pocos segundos por iteración y en cuestión de minutos armaba el ranking.\\
 
-Las unicas diferencia sustanciales de tiempo aparecian en la lectura del archivo de entrada
-y armado de matriz inicial, donde el overhead en Python dominaba y no habia
-ningun conjunto de subrutines optimizadas para esa tarea.
+Las únicas diferencias sustanciales de tiempo aparecían en la lectura del archivo de entrada
+y armado de la matriz inicial, donde el overhead en Python dominaba y no había
+ningún conjunto de subrutinas optimizadas para esa tarea.
 
 \subsubsection{Implementación - Etapa C++} % (fold)
 \label{ssub:implementaci_n_etapa_c_}
@@ -38,29 +38,29 @@ funcionaba, es que usamos el código de Python a manera de pseudocódigo para el
 
 En C++ para armar las matrices esparsas usamos STL y la estructura de datos
 \textit{std::map}, que expone una interfaz de contenedor genérico que preserva órden, internamente
-implementado como un Red-Black tree.
+implementado como un Red-Black tree.\\
 
 A diferencia de la implementación en Python donde hacemos uso indiscriminado
 de la riqueza de las librerías, nos vimos forzados a acomodar las operaciones
-de manera tal que tengamos que implementar solamente las operaciones exclusivamente necesarias.
+de manera tal que tengamos que implementar solamente las operaciones exclusivamente necesarias.\\
 
 La reclamación de recursos de memoria es uno de los mayores problemas de usar
-lenguajes con manejo de memoria manual. Esto en la práctica no resulto ser un problema,
+lenguajes con manejo de memoria manual. Esto en la práctica no resultó ser un problema,
 dado que tomamos ventaja de las faciliades de manejo de memoria provistas por la nueva versión
 de C++: los \textit{unique\_ptr} y los \textit{shared\_ptr}, que permiten reclamar objetos que se van fuera de
 \textit{scope}, y en el caso de los \textit{unique\_ptr}, también garantizan que un objeto tenga
-una sola variable como ``dueño'' a la vez, permitiendo razonar más facilmente sobre la misma.
+una sola variable como ``dueño'' a la vez, permitiendo razonar más facilmente sobre la misma.\\
 
-Un problema que sí hubo fue que nuestro primer intento de implementación intentaba simplificar
+Un problema que sí hubo, fue que nuestro primer intento de implementación intentaba simplificar
 las operaciones matriciales haciendo uso de la sobrecarga de operadores en C++. El problema
 con esto es que los operadores retornan objetos por copia, por lo que cada operación numérica
 hecha con estos implicaría una copia masiva de datos (en teoria C++ soporta una clase de optimización
-llamada \textit{elisión de copia} para evitar retornar objetos por copia, pero su utilización es muy acotada y 
-es difícil contar con la misma siempre).
+llamada \textit{elisión de copia} para evitar retornar objetos por copia, pero su utilización es muy acotada y
+es difícil contar con la misma siempre).\\
 
-Para resolver esto, implementamos las operaciones con variantes que pasan objetos por referencia, y 
+Para resolver esto, implementamos las operaciones con variantes que pasan objetos por referencia, y
 en muchos casos, para ahorrar memoria, hicimos operaciones que modifican la matriz original. En la práctica
-esto fue necesario, dado que varias matrices esparsas llegaban a consumir múltiples gigabytes de memoriya.
+esto fue necesario, dado que varias matrices esparsas llegaban a consumir múltiples gigabytes de memoria.
 % subsubsection implementaci_n_etapa_c_ (end)
 
 

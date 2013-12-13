@@ -12,20 +12,20 @@ las iteraciones necesarias para la convergencia.
 
 Se puede ver claramente en el Cuadro~\ref{tab:iteraciones} los beneficios de
 realizar Extrapolaciones Cuadráticas. El beneficio se encuentra en el rango del
-$27\%$ al $44\%$.
+$27\%$ al $44\%$.\\
 
 Es muy interesante el comportamiento de la cantidad de iteraciones necesarias
 en base a la frequencia de realizar iteraciones con Extrapolación Cuadrática.
 El beneficio de incorporar estas iteraciones es claro, pero una frecuencia muy
 alta perjudica su beneficio. Para todos los $c$ realizar una Extrapolación
 Cuadrática cada 4 o 5 iteraciones se comporta peor que realizar una cada 10
-iteraciones.
+iteraciones.\\
 
 La Extrapolación Cuadrática para el Método de la Potencia es una aproximación
 de una iteración imaginando esta como una combinación lineal de los primeros
-tres autovectores. El paper de KamvarREFFF muestra empíricamente sin ningún
+tres autovectores. El paper de Kamvar muestra empíricamente sin ningún
 sustento teórico que esta aproximación es mejor que realizar la siguiente
-iteración del Método de la Potencia.
+iteración del Método de la Potencia.\\
 
 En nuestro caso, al aplicar esta aproximación muy seguido, sin dejar que el
 Método de la Potencia mejore por si sólo, el resultado nos produce menor
@@ -33,10 +33,10 @@ beneficio. Nuestra hipótesis es que se debe a que al utilizar sólo tres
 autovectores para la aproximación se pierde la influencia de los siguientes
 autovectores que parece no ser menor. Por esto, necesita de varias iteraciones
 del Método de la Potencia para que la aproximación vuelva a traer grandes
-beneficios.
+beneficios.\\
 
 Por último no calculamos el tiempo que influye realizar una iteración con
-Extrapolación Cuadrática, pero en KamvarREFFF se postula que es despreciable en
+Extrapolación Cuadrática, pero en Kamvar se postula que es despreciable en
 comparación con el beneficio otorgado.
 
 \subsection{Trabajo futuro}
@@ -48,7 +48,7 @@ experiencias obtenidas a lo largo del desarrollo de este trabajo:
 
 \item Medir el tiempo necesario para agregar una Extrapolación Cuadrática. No
 creemos que el beneficio práctico temporal sea muy diferente que el beneficio
-de convergencia en cantidad de iteraciones, como esta postulado en KamvarREFFF.
+de convergencia en cantidad de iteraciones, como esta postulado en Kamvar.
 No obstante se podría validar experimentalmente.
 
 \item Analizar detalladamente la frecuencia óptima para realizar iteraciones
