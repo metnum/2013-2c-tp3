@@ -1,0 +1,184 @@
+\section{Enunciado}
+
+\begin{center}
+\begin{tabular}{r|cr}
+ \begin{tabular}{c}
+{\large\bf\textsf{\ M\'etodos Num\'ericos\ }}\\ 
+Segundo Cuatrimestre 2013\\
+{\bf Trabajo Pr\'actico 3}
+\end{tabular} &
+\begin{tabular}{l @{}}
+ \emph{Departamento de Computaci\'on} \\
+ \emph{Facultad de Ciencias Exactas y Naturales} \\
+ \emph{Universidad de Buenos Aires} \\
+\end{tabular} 
+\end{tabular}
+\end{center}
+
+\vskip 25pt
+\hrule
+\vskip 11pt
+ 
+\textbf{Introducci\'on}
+
+A partir de la evoluci\'on de Internet durante la d\'ecada de 1990, el desarrollo de motores de b\'usqueda se ha convertido
+en uno de los aspectos centrales para su efectiva utilizaci\'on. Hoy en d\'ia, sitios como Yahoo, Google y Bing ofrecen
+distintas alternativas para realizar b\'usquedas complejas dentro de un red que contiene miles de millones de p\'aginas
+web. 
+
+En sus comienzos, una de las caracter\'isticas que distngui\'o a Google respecto de los motores de b\'usqueda de la \'epoca
+fu\'e la calidad de los resultados obtenidos, mostrando al usuario p\'aginas relevantes a la
+b\'usqueda realizada. El esquema general de los or\'igenes de este motor de b\'usqueda es brevemente explicando en 
+Brin y Page \cite{Brin1998}, donde se mencionan aspectos t\'ecnicos que van desde la etapa de obtenci\'on de
+informaci\'on de las p\'aginas disponibles en la red, su almacenamiento e indexado y su posterior procesamiento,
+buscando ordenar cada p\'agina de acuerdo a su importancia relativa dentro de la red. El algoritmo utilizado para esta
+\'ultima etapa es denominado PageRank y es uno (no el \'unico) de los criterios utilizados para ponderar la importancia
+de los resultados de una b\'usqueda. En este trabajo nos concentraremos en el estudio y desarrollo del algoritmo
+PageRank.
+
+\textbf{El problema}
+
+El algoritmo PageRank se basa en la construcci\'on del siguiente modelo. Supongamos que tenemos una red con $n$ p\'aginas 
+web $Web = \{1,\dots,n\}$ donde
+el objetivo es asignar a cada una de ellas un puntaje que determine la importancia relativa de la misma respecto de las
+dem\'as. Para modelar las relaciones entre ellas, definimos la \emph{matriz de conectividad} $W \in \{0,1\}^{n \times n}$ 
+de forma tal que $w_{ij} = 1$ si la p\'agina $j$ tiene un link a la p\'agina $i$, y $w_{ij} = 0$ en caso contrario. 
+Adem\'as, ignoramos los \emph{autolinks}, es decir, links de una p\'agina a s\'i misma, definiendo $w_{ii} = 0$. Tomando 
+esta matriz, definimos el grado de la p\'agina $j$, $n_j$, como la cantidad de links salientes hacia otras p\'aginas 
+de la red, donde $n_j = \sum_{i = 1}^n w_{ij}$. Adem\'as, notamos con $x_j$ al puntaje asignado a la p\'agina $j\in
+Web$, que es lo que buscamos calcular.
+
+La importancia de una p\'agina puede ser modelada de diferentes formas. Un link de la p\'agina $u \in
+Web$ a la p\'agina $v \in Web$ puede ser visto como que $v$ es una p\'agina importante. Sin embargo, no queremos que una
+p\'agina obtenga mayor importancia simplemente porque es apuntada desde muchas p\'aginas. 
+Una forma de limitar esto es ponderar los links utilizando la importancia de la p\'agina de origen. En otras palabras,
+pocos links de p\'aginas importantes pueden valer m\'as que muchos links de p\'aginas poco importantes. En particular,
+consideramos que la importancia de la p\'agina $v$ obtenida mediante el link de la p\'agina $u$ es proporcional a la 
+importancia de la p\'agina $u$ e inversamente proporcional al grado de $u$. Si la p\'agina $u$ contiene $n_u$ links,
+uno de los cuales apunta a la p\'agina $v$, entonces el aporte de ese link a la p\'agina $v$ ser\'a $x_u/n_u$. Luego,
+sea $L_k \subseteq Web$ el conjunto de p\'aginas que tienen un link a la p\'agina $k$. Para cada p\'agina pedimos que
+\begin{eqnarray}
+x_k = \sum_{j \in L_k} \frac{x_j}{n_j},~~~~k = 1,\dots,n. \label{eq:basicmodel}
+\end{eqnarray}
+Definimos $P \in  \mathbb{R}^{n \times n}$ tal que $p_{ij} = 1/n_j$ si $w_{ij} = 1$, y $p_{ij} = 0$ en caso contrario. Luego,
+el modelo planteado en (\ref{eq:basicmodel}) es equivalente a encontrar un $x\in \mathbb{R}^n$ tal que $Px = x$, es
+decir, encontrar (suponiendo que existe) un autovector asociado al autovalor 1 de una matriz cuadrada, tal que $x_i \ge
+0$ y $\sum_{i = 1}^n x_i = 1$. En
+Bryan y Leise \cite{Bryan2006} y Kamvar et al. \cite[Secci\'on 1]{Kamvar2003} se analizan ciertas condiciones que debe
+cumplir la red de p\'aginas para garantizar la existencia de este autovector.
+
+Una interpretaci\'on equivalente para el problema es considerar al \emph{navegante aleatorio}. \'Este empieza en una
+p\'agina cualquiera del conjunto, y luego en cada p\'agina $j$ que visita sigue navegando a trav\'es de sus links,
+eligiendo el mismo con probabilidad $1/n_j$. Una situaci\'on particular se da cuando la p\'agina no tiene links salientes. En
+ese caso, consideramos que el navegante aleatorio pasa a cualquiera de las p\'agina de la red con probabilidad $1/n$.
+Para representar esta situaci\'on, definimos $v \in \mathbb{R}^{n \times n}$, con $v_i = 1/n$ y $d \in \{0,1\}^{n}$ donde 
+$d_i = 1$ si $n_i = 0$, y $d_i = 0$ en caso contrario. La nueva matriz de transici\'on es 
+\begin{eqnarray*}
+D & = & v d^t \\
+P_1 & = & P + D.
+\end{eqnarray*}
+Adem\'as, consideraremos el caso de que el navegante aleatorio, dado que se encuentra en la p\'agina $j$, decida visitar
+una p\'agina cualquiera del conjunto, independientemente de si esta se encuentra o no referenciada por $j$ (fen\'omeno
+conocido como \emph{teletransportaci\'on}). Para ello, consideramos que esta decisi\'on se toma con una probabilidad
+$c \ge 0$, y podemos incluirlo al modelo de la siguiente forma:
+\begin{eqnarray*}
+E & = & v \bar{1}^t \\
+P_2 & = & cP_1 + (1-c)E,
+\end{eqnarray*}
+\noindent donde $\bar{1} \in \mathbb{R}^n$ es un vector tal que todas sus componenetes valen 1. La matriz resultante
+$P_2$ corresponde a un enriquecimiento del modelo formulado en (\ref{eq:basicmodel}). Probabil\'isticamente, la
+componente $x_j$ del vector soluci\'on (normalizado) del sistema $P_2 x = x$ representa la proporci\'on del tiempo que,
+en el largo plazo, el navegante aleatorio pasa en la p\'agina $j \in Web$.
+
+En particular, $P_2$ corresponde a una
+matriz \emph{estoc\'astica por columnas} que cumple las hip\'otesis planteadas en Bryan y Leise \cite{Bryan2006} y
+Kamvar et al. \cite{Kamvar2003}, tal que $P_2$ tiene un autovector asociado al autovalor 1, los dem\'as autovalores de
+la matriz cumplen $1 = \lambda_1 > |\lambda_2| \ge \dots \ge |\lambda_n|$ y, adem\'as, la dimensi\'on
+del autoespacio asociado al autovalor $\lambda_1$ es 1. Luego, la soluci\'on al sistema $P_2 x = x$ puede ser calculada
+de forma est\'andar utilizando el m\'etodo de la potencia.
+
+\textbf{Enunciado}
+
+El objetivo del trabajo es implementar el algoritmo PageRank, considerando dos m\'etodos distintos para el c\'alculo del
+autovector principal de la matriz $P_2$. Para ello, se considera el entorno de aplicaci\'on real del algoritmo, donde el
+n\'umero total de p\'aginas, $n$, es considerablemente grande (i.e., todas las p\'aginas web accesibles p\'ublicamente).
+El programa tomar\'a como entrada un archivo con la representaci\'on de grafo de conectividad, construir\'a la matriz
+$P_2$ definida en la secci\'on anterior y ejecutar\'a el algoritmo PageRank utilizando el m\'etodo de la potencia y una 
+variante del mismo para distintas instancias de prueba. Se pide:
+
+\begin{enumerate}
+\item En base a su definici\'on, $P_2$ no es una matriz esparsa. Sin embargo, en Kamvar et al. \cite[Algoritmo
+1]{Kamvar2003} se propone una forma alternativa para computar $x^{(k+1)} = P_2 x^{(k)}$. Mostrar que el c\'omputo
+propuesto es equivalente. Utilizarlo para mejorar el espacio requerido en memoria para el almacenamiento de la matriz
+$P_2$ y el tiempo de ejecuci\'on requerido para hacer la multiplicaci\'on entre matrices y vectores. 
+
+\item Bas\'andose en el an\'alisis del punto anterior, implementar el m\'etodo de la potencia para calcular el
+autovector principal de la matriz $P_2$.
+
+\item Implementar la variante del M\'etodo de la Potencia propuesta en Kamvar et al. \cite[Secci\'on 5]{Kamvar2003},
+denominada Extrapolaci\'on Cuadr\'atica. El m\'etodo de Cuadrados M\'inimos involucrado debe ser resuelto utilizando la
+Factorizaci\'on QR de la matriz mediante alguno de los m\'etodos vistos en la materia.
+
+\item Realizar experimentos considerando distintas instancias de prueba. Para ello, se podr\'a utilizar el c\'odigo
+adjuntada para la generaci\'on de instancias en base a datos reales, o cualquier otra herramienta que el grupo considere
+necesaria. Evaluar tambi\'en los algoritmos alguno de los conjuntos de instancias
+provistos en \cite{SNAP}. Para cada algoritmo, analizar el tiempo de
+ejecuci\'on, la evoluci\'on del error entre iteraciones consecutivas y considerar distintos criterios de parada. 
+Adem\'as, analizar la calidad del ordenamiento obtenido en t\'erminos de la relevancia de las p\'aginas.
+\end{enumerate}
+
+\textbf{Formato de archivos}
+
+El programa deber\'a recibir como par\'ametro un archivo con la representaci\'on esparsa de la matriz (grafo) de
+conectividad. El archivo contendr\'a una l\'inea con la cantidad de p\'aginas ($n$), la cantidad de links ($m$) y luego
+una lista con un link por l\'inea, indicando la p\'agina de origen y destino separadas por un espacio. A modo de
+ejemplo, a continuaci\'on se muestra el archivo de entrada correspondiente al ejemplo propuesto en Bryan y Leise
+\cite[Figura 1]{Bryan2006}: 
+
+\begin{verbatim}
+4 
+8 
+1   2
+1   3
+1   4
+2   3
+2   4
+3   1
+4   1
+4   3
+\end{verbatim}
+
+Una vez ejecutado el algoritmo, el programa deber\'a generar un archivo de salida que contenga una l\'inea por cada
+p\'agina, acompa\~nada del puntaje obtenido por el algoritmo PageRank, ordenados en forma decreciente en funci\'on de
+este \'ultimo valor.
+
+Para generar instancias, es posible utilizar el c\'odigo Python provisto por la c\'atedra. Es importante mencionar que, para que el mismo funcione, es
+necesario tener acceso a Internet. En caso de encontrar un bug en el mismo, por favor contactar a los docentes de la
+materia a trav\'es de la lista. Desde ya, el c\'odigo puede ser modificado por los respectivos grupos agregando todas
+aquellas funcionalidades que consideren necesarias.
+
+\vskip 15pt
+
+\hrule
+
+\vskip 11pt
+
+
+{\bf \underline{Fechas de entrega}}
+\begin{itemize}
+ \item \emph{Formato Electr\'onico:} Domingo 10 de Noviembre de 2013, hasta las 23:59 hs, enviando el trabajo (informe +
+ c\'odigo) a la direcci\'on \verb+metnum.lab@gmail.com+. El subject del email debe comenzar con el texto \verb+[TP3]+
+ seguido de la lista de apellidos  de los integrantes del grupo.
+ \item \emph{Formato f\'isico:} Lunes 11 de Noviembre de 2013, de 17 a 18 hs.
+\end{itemize}
+
+\noindent \textbf{Importante:} El horario es estricto. Los correos recibidos despu\'es de la hora indicada ser\'an considerados re-entrega.
+
+\section{Referencias}
+
+\begin{itemize}
+    \item Numerical Analysis, Richard L. Burden, John Douglas Faires. Cengage Learning, 2005.
+    \item The Linear Algebra behind Google, Bryan, Kurt and Leise, Tanya, SIAM Review, 2006.
+    \item The anatomy of a large-scale hypertextual Web search engine, Brin, Sergey and Page, Lawrence, Computer Networks and ISDN Systems, 1998.
+    \item Extrapolation methods for accelerating PageRank computations, Kamvar, Sepandar D. and Haveliwala, Taher H. and Manning, Christopher D. and Golub, Gene H., ACM, 2003.
+\end{itemize}
