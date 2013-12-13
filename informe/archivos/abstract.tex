@@ -1,19 +1,19 @@
 \section{Abstract}
 
-En este trabajo nos concentraremos en analizar la teoría detrás del algoritmo PageRank, famoso por su utilización por
-Google en su motor de búsquedas, y un conjunto de optimizaciones propuestas por \textit{Kamvar} y \textit{HaveliWala}.
+El objetivo de este trabajo es analizar la implementación detrás del algoritmo
+PageRank, famoso por su utilización en el motor de búsquedas Google. La base de
+este algoritmo es calcular el primer autovector de una matriz estocástica por
+columnas que representa el grafo de la web y la importancia relativa de cada
+página.
 
-Dado a conocer a través de un paper en 1998, el algoritmo Page Rank, se convirtió en una de las claves del
-éxito del motor de búsqueda Google. Su implementación se basa en la creación de un ranking en el cual se pondera
-con un cierto criterio cada una de las páginas según un modelo de \textit{navegante aleatório}.
-
-Al final presentaremos resultados de experimentaciones que nos parecieron pertinentes, mostrando que efectivamente
-la variación del método iterativo sí optimiza considerablemente la convergencia de PageRank.
+En sus inicios este autovector se calculaba en base al Método de la Potencia.
+Hoy en día se conocen muchas optimizaciones. En este trabajo implementaremos,
+analizaremos y mediremos los beneficios otorgados por la optimización de
+Extrapolación Cuadrática.
 
 {\bf Palabras clave:}
 \begin{itemize} 
     \item PageRank
     \item Metodo de Potencia
     \item Extrapolación Cuadrática
-    \item QR
 \end{itemize}
