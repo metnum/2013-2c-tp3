@@ -8,38 +8,6 @@ from numpy import matrix, sign, zeros, empty
 from numpy.linalg import norm, solve
 from scipy.sparse import lil_matrix
 
-# Operaciones
-# load_file(string filename)
-# build_matrix(const double[][]& raw_data)
-
-# sparse_matrix(int m, int n, bool by_row=true)
-
-# Operaciones matriciales
-
-# void set_empty_value(double c)
-# void sum(double c)
-# vouid sum(sparse_matrix& m)
-# void sub(sparse_matrix& m)
-# void mult(double c)
-# void  mult(sparse_matrix& m2) // modifica m in-place
-# double norm(int norm) // 1 o 2
-# double put(int i, int j, double val)
-# double get(int i, int j, double if_empty)
-# sparse_matrix& get_column(int i);
-# count_nonzero_row
-
-# row_divide(int i, double val)
-# row_sum(int i, double c)
-# row_sum(int i, sparse_matrix& row)
-# row_sub(int i, sparse_matrix& row)
-# col_sum(int j, double c)
-# col_sum(int j, sparse_matrix& col)
-# col_sub(int j, sparse_matrix& col)
-
-# ----------------------------
-
-# Otras funciones matriz
-# sparse_matrix& identity(int m, int n)
 
 REMAIN_FACTOR = 0.95
 TELEPORTATION_FACTOR = 1 - REMAIN_FACTOR
@@ -68,7 +36,6 @@ def load_data(raw_data):
     links = int(raw_data.readline())
 
     print 'Armando la matriz esparsa...'
-    #graph = zeros((pages, pages))
     graph = lil_matrix((pages, pages), dtype='d')
 
     row_outdegrees = zeros(pages)
@@ -106,9 +73,6 @@ def load_data(raw_data):
 
     return graph, pages, links, row_outdegrees
 
-
-#def D(web):
-#    return matrix([[1 - float(any(row)) for row in web]]).T
 
 def v(n):
     v = empty(n)
@@ -151,7 +115,6 @@ def pagerank_power_kamvar(P, x, criteria, epsilon, remain_factor):
     delta = 1000000.0  # At least one iteration will be performed
 
     n = len(x)
-    # v = matrix([1.0 / n] * n).T  # we can just multiply by the const 1/n
     uniform_prob = 1.0 / n
 
     results = [x]
@@ -166,7 +129,6 @@ def pagerank_power_kamvar(P, x, criteria, epsilon, remain_factor):
         else:
             delta = norm(x_k - x) / norm(x)
 
-        # print "Iter -> %s %s <- delta" % (k, delta)
         k += 1
         x = x_k
         results.append(x_k)
@@ -177,9 +139,6 @@ def pagerank_power_kamvar(P, x, criteria, epsilon, remain_factor):
 
 
 def solve_gammas(Y, y_k):
-    # q, r = qr(Y)
-    # ret = solve(r, -q.T * matrix(y_k).T).T
-    # return ret.tolist()[0]
     return qr_two_iterations(Y, matrix(y_k).T).T.tolist()[0]
 
 
@@ -189,7 +148,6 @@ def quad_extrapolation(x_3, x_2, x_1, x_k):
     y_1 = x_1 - x_3
     y_k = x_k - x_3
 
-    # Y2 = matrix([y_2[:, 0].ravel().tolist()[0], y_1[:, 0].ravel().tolist()[0]]).T
     Y = matrix((y_2, y_1)).T
     gamma_3 = 1
 
@@ -233,10 +191,8 @@ def power_quad(P, x, criteria, epsilon, quad_freq, remain_factor):
         w = norm(x_k, 1) - norm(y, 1)
         x_k = y + w * prob_teleport
 
-        # do_quad = False
         if k in quad_freq:
             # print "Performing quad extrapolation..."
-            # do_quad = True
             x_k = quad_extrapolation(x_3, x_2, x_1, x_k)
 
         if criteria == 'abs':
@@ -299,17 +255,10 @@ if __name__ == '__main__':
     print "Loading data..."
     web, pages, links, out_degrees = load_data(raw_data)
 
-    # Create P''
-    # dense = web.todense()
-    # P2 = P_2(P_1(dense, out_degrees), v(len(out_degrees)))
-
-    ########################### c=.9
-    print
     print "Computing PageRank with regular Power Method... c=.9"
     res = pagerank_power_kamvar(web, v(pages), 'rel', 0.0001, 0.9)
     print 'result:\n', res
 
-    print
     print "Computing PageRank with regular Power Quad...c=.9, solo una vez en la 5ta iter"
     res = power_quad(web, v(pages), 'rel', 0.0001, [5], 0.9)
     print res / norm(res, 1)  # es necesario normalizar?

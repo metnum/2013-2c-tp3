@@ -365,30 +365,6 @@ class sparse_matrix {
             return this->data;
         }
 
-        /*
-        matrix* transponse(bool in_place=true) {
-            assert(in_place);
-
-            int i, j;
-            for(auto& row: this->data) {
-                for (auto& col: row.second) {
-                    i = row.first;
-                    j = col.first;
-                    val = col.second;
-                }
-            }
-
-        } */
-
-        /*
-        void row_divide(int i, double val);
-        void row_sum(int i, double c);
-        void row_sum(int i, sparse_matrix& row);
-        void row_sub(int i, sparse_matrix& row);
-        void col_sum(int j, double c);
-        void col_sum(int j, sparse_matrix& col);
-        void col_sub(int j, sparse_matrix& col);
-        */
 };
 
 std::ostream& operator<<(std::ostream& os, sparse_matrix const& mat) {
