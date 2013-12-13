@@ -2,15 +2,15 @@
 
 \subsection{PageRank}
 
-PageRank es un algoritmo que modela un proceso aleatorio de navegación a través de 
+PageRank es un algoritmo que modela un proceso aleatorio de navegación a través de
 distintas páginas Web, cuyo objetivo es generar un ranking de importancia de páginas,
 que en la práctica se utiliza para refinar los resultados de búsquedas de texto en las mismas
-para refinar los resultados por relevancia.
+para refinar los resultados por relevancia.\\
 
 El problema se define como encontrar el autovector asociado al autovalor 1 de la matriz de transiciones
 correspondientes a un grafo de páginas Web interconectadas. Dado que esta matriz se puede ajustar
 para que sea estocástica, el autovector corresponde a la proporción de tiempo que pasa un navegante
-aleatorio en una página, que en la realidad resulta un buen indicador de importancia.
+aleatorio en una página, que en la realidad resulta un buen indicador de importancia.\\
 
 La manera en cómo se modela el problema del ranking es usando una matriz de adyacencias.
 Sea $W \in \mathbb{R}^{n \times n}$ donde $n$ es la cantidad de sitios indexados, luego el elemento
@@ -25,16 +25,16 @@ al grado de la página $j$ donde $n_j = \sum^{n}_{i = 1} w_{ij}$.
 
 Con la matriz de adyacencias originales, ahora queremos tomar sus datos y generar con ellos
 una matriz estocástica que defina la probabilidad de clickear en un link al azar
-en una página y transicionar hacia otra.
+en una página y transicionar hacia otra.\\
 
 Para ello, consideramos $P$ la matriz que se obtiene a partir de tomar la matriz de
 adyacecias y normalizando sus filas para que tengan norma 2 igual a 1. Es decir,
 si una página tiene 2 links salientes, la probabilidad de clickear en uno de ellos
-es $frac{1}{2}$, con tres links es $frac{1}{3}$, y así sucesivamente.
+es $frac{1}{2}$, con tres links es $frac{1}{3}$, y así sucesivamente.\\
 
 El problema que hay con esto es que no todas las páginas necesariamente tienen links
 salientes, por lo que se asume que si un navegante llega a una página sin \textit{outlinks},
-elige una página al azar sobre el universo de todas las páginas.
+elige una página al azar sobre el universo de todas las páginas.\\
 
 Para modelar esto, sea $\vec{d}$ un vector con longitud $n$, la posición $d_i$ toma los valores\\
 
@@ -62,7 +62,7 @@ Luego definimos $P' = P + D$, que es estocástica.
 Además del manejo de navegación aleatoria, \textit{PageRank} considera una probabilidad de que
 en cualquier momento el navegador eliga saltar a una nueva página al azar, sin considerar
 los links de la página actual. Esto se llama \textit{teleporteo}, y se modela como un factor
-$c$ que multiplica a $P'$  y una matriz $E \in R^{nxn}$, con una probabilidad uniforme de $\frac{1}{n}$.
+$c$ que multiplica a $P'$  y una matriz $E \in R^{nxn}$, con una probabilidad uniforme de $\frac{1}{n}$.\\
 
 Luego la expresión que resuelve el problema de \textit{PageRank} de la matriz de transiciones
 con teleporteo, dado el vector de probabilidades $\vec{x}$, es\\
@@ -73,12 +73,12 @@ Ax & =(cP' + (1-c)E)^{t} \vec{x}
 
 \subsection{Resolución de PageRank}
 
-La resolución de \textit{PageRank}, en su forma más básica, consiste en obtener el autovector 
-asociado al autovalor 1. La forma más simple de hacerlo es por medio del método de potencias.
-que funciona computando $A\vec{x}$ iterativamente hasta cumplir con un criterio de detención.
+La resolución de \textit{PageRank}, en su forma más básica, consiste en obtener el autovector
+asociado al autovalor 1. La forma más simple de hacerlo es por medio del método de potencias
+que funciona computando $A\vec{x}$ iterativamente hasta cumplir con un criterio de detención.\\
 
 Este método presenta un problema práctico, en que la matriz de transiciones suele ser muy
-esparsa, pero si se considera la información agregada por las matrices $E$ y $D$, la misma 
+esparsa, pero si se considera la información agregada por las matrices $E$ y $D$, la misma
 resulta densa. A continuación veremos que esto se puede resolver.
 
 \subsection{Cálculo alternativo de $x^{(k + 1)} = P_2x^{(k)}$}
@@ -91,9 +91,9 @@ cer la multiplicación entre matrices y vectores.\\
 Queremos ver que el algoritmo propuesto por \cite[Algoritmo 1]{Kamvar2003} es equivalente
 a la operación $\vec{y} = A\vec{x}$, para $A=(cP + (1-c)E)^{t}$, donde $P$ es la matriz
 de transiciones de links, no ajustada por las páginas sin outlinks,
-y $E$ es la matriz uniforme de teletransportación con valor $\frac{1}{n}$ en cada celda.
+y $E$ es la matriz uniforme de teletransportación con valor $\frac{1}{n}$ en cada celda.\\
 
-Para ello, expandimos las ecuaciones de ambos y veremos que las mismas producen el mismo cálculo.
+Para ello, expandimos las ecuaciones de ambos y veremos que las mismas producen el mismo cálculo.\\
 
 Primero, la ecuación $A\vec{x}$ se desarrolla como\\
 \begin{align*}
@@ -114,33 +114,32 @@ cP^{t}\vec{x} + cD^{t}\vec{x} + (1-c)E^{t}\vec{x} &= cP^{t}\vec{x} + (\vectornor
 cD^{t}\vec{x} + (1-c)E^{t}\vec{x} &= (\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1)\vec{v}
 \end{align*}
 
-Veamos por qué el término del lado izquierdo es equivalente al derecho.
+Veamos por qué el término del lado izquierdo es equivalente al derecho.\\
 
 La norma 1 del vector es la suma de los valores absolutos de sus elementos.
 Observemos que, para las columnas de $P$, las mismas o bien tienen norma 1 que vale 1, o cero.
-Es decir, las columnas no-cero de $P$ contribuyen a la norma 1 de $\vec{y}$.
+Es decir, las columnas no-cero de $P$ contribuyen a la norma 1 de $\vec{y}$.\\
 
 Observemos también que en la multiplicación $(1-c)E\vec{x}$, la norma 1 de este producto es
-$(1-c)$, pues la norma 1 de cada columna de $E$ es 1 y $\vectornorm{\vec{x}} = 1$.
+$(1-c)$, pues la norma 1 de cada columna de $E$ es 1 y $\vectornorm{\vec{x}} = 1$.\\
 
 Por ultimo, también vemos que para aquellas columnas de ceros en $P^{t}$, las columnas no-cero de
- $D$ preservan la norma de las mismas.
+ $D$ preservan la norma de las mismas.\\
 
 Dados los hechos anteriores, podemos obervar que $\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1$ se
 puede interpretar como la norma que se ``pierde'' cuando $\vec{x}$  es multiplicada por $cP^t$.
 Esta ``pérdida de norma'' se debe justamente a que falta sumar los products de $\vec{x}$  por
-$E$  y $D$ de la ecuación, pues $A$ preserva la norma 1.
+$E$  y $D$ de la ecuación, pues $A$ preserva la norma 1.\\
 
 Ahora, como en $E^t$ y $D^t$, las filas que componen cada matriz son iguales entre sí (en $E^t$ todos elementos valen $\frac{1}{n}$, y
 en $D^t$ como fue descrito en la sección anterior), cuando se realiza $E\vec{x}$ o $D^t\vec{x}$, el resultado
 produce un vector de valores idénticos en cada posición. Estos mismos valores son la diferencia que captura
 $(\vectornorm{\vec{x}}_1 - \vectornorm{\vec{y}}_1) \vec{v}$. Luego agregar esto a $\vec{y}$ resulta
 equivalente a haber realizado las sumas de vectores resultantes correspondientes, con la diferencia
-de que no hizo falta materializar dichas matrices.
+de que no hizo falta materializar dichas matrices.\\
 
 Con ello concluimos que los dos términos del algoritmo de Kamvar son equivalentes
 a la matriz $A$ de transiciones. $ \blacksquare $
-
 
 \subsection{QR y Reflecciones de Householder}
 
